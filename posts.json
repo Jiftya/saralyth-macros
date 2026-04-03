@@ -1,9 +1,9 @@
 [
     {
-        "title": "testing",
-        "author": "by mqtking",
-        "message": "test message",
-        "fileUrl": "https://txt2html.sourceforge.net/sample.txt",
-        "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLmHKS2KBPFtxsfyWuLv7hg1r2kc57txWd1ikT971RInKA9YP6dSWHt2-CEjHTe0N2FuNp08LXsgriH7WrLtoke-XTNDjrvY3NuE38r97Ueg&s=10"
+        "title": "Mqtking Double Walls",
+        "author": "mqtking",
+        "message": "this is a macro on double walls",
+        "fileUrl": "files/bridge_legit.json",
+        "thumbnail": "images/screenshot1.png"
     },
 ]
