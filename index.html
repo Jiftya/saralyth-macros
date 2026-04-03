@@ -29,8 +29,8 @@
         .modal-content { background-color: #1a1d21; border-radius: 16px; border: 1px solid #374151; }
         pre[class*="language-"] { margin: 0; background: transparent !important; font-size: 0.9rem; }
         
-        /* Clean video player styling */
         video { width: 100%; border-radius: 8px; margin-bottom: 1.5rem; background: #000; }
+        [v-cloak] { display: none; }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
@@ -46,7 +46,7 @@
             </div>
         </header>
 
-        <div v-if="isLoading" class="text-gray-500 font-medium">Checking the files...</div>
+        <div v-if="isLoading" class="text-gray-500 font-medium italic">Checking the files...</div>
 
         <div v-else class="space-y-4">
             <div v-if="filteredPosts.length === 0" class="py-10 text-gray-500">
@@ -55,8 +55,7 @@
 
             <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-5 flex justify-between items-center cursor-pointer">
                 <div class="flex items-center gap-5">
-                    <img v-if="post.thumbnail" :src="post.thumbnail" class="w-16 h-16 rounded-lg object-cover">
-                    <div v-else class="w-16 h-16 rounded-lg bg-[#2d3136] flex items-center justify-center text-2xl">📄</div>
+                    <img v-if="post.thumbnail && post.thumbnail !== ''" :src="post.thumbnail" class="w-16 h-16 rounded-lg object-cover">
                     
                     <div>
                         <h2 class="text-white text-xl font-semibold">{{ post.title || 'Untitled Macro' }}</h2>
@@ -83,7 +82,7 @@
                 </div>
 
                 <div class="bg-black/50 p-6 overflow-auto">
-                    <div v-if="activePost.videoUrl">
+                    <div v-if="activePost.videoUrl && activePost.videoUrl !== ''">
                         <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Video Preview</p>
                         <video controls :src="activePost.videoUrl"></video>
                         <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Macro Data</p>
