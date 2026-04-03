@@ -28,6 +28,9 @@
 
         .modal-content { background-color: #1a1d21; border-radius: 16px; border: 1px solid #374151; }
         pre[class*="language-"] { margin: 0; background: transparent !important; font-size: 0.9rem; }
+        
+        /* Clean video player styling */
+        video { width: 100%; border-radius: 8px; margin-bottom: 1.5rem; background: #000; }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
@@ -80,6 +83,12 @@
                 </div>
 
                 <div class="bg-black/50 p-6 overflow-auto">
+                    <div v-if="activePost.videoUrl">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Video Preview</p>
+                        <video controls :src="activePost.videoUrl"></video>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Macro Data</p>
+                    </div>
+
                     <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
                 </div>
 
