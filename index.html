@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Forum Archive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f0f10; color: #dbdee1; font-family: 'gg sans', sans-serif; }
+        .forum-card { 
+            background-color: #111214; 
+            border: 1px solid #1e1f22; 
+            border-radius: 12px; 
+            transition: background-color 0.1s;
+            cursor: pointer;
+        }
+        .forum-card:hover { background-color: #1a1b1e; }
+        .json-preview { 
+            background-color: #0c0d0e; 
+            border: 1px solid #1e1f22; 
+            color: #23a559; 
+            font-family: monospace; 
+            display: none; /* Hidden until clicked */
+        }
+        .username { font-weight: 600; font-size: 0.9rem; }
+        .timestamp { color: #949ba4; font-size: 0.85rem; }
+        .thumbnail { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-3xl mx-auto">
+        <div id="forumFeed" class="space-y-2">
+            </div>
+    </div>
+
+    <script>
+        async function loadForum() {
+            const feed = document.getElementById('forumFeed');
+            try {
+                const res = await fetch('./posts.json?v=' + Date.now());
+                const posts = await res.json();
+                
+                feed.innerHTML = ''; 
+
+                for (const post of posts) {
+                    const postContainer = document.createElement('div');
+                    postContainer.className = "space-y-2";
+
+                    // Load JSON content for the dropdown preview
+                    let content = "Loading...";
+                    try {
+                        const fileRes = await fetch(post.fileUrl);
+                        const jsonData = await fileRes.json();
+                        content = JSON.stringify(jsonData, null, 4);
+                    } catch (e) { content = "Error loading " + post.fileUrl; }
+
+                    postContainer.innerHTML = `
+                        <div class="forum-card p-3 flex justify-between items-center" onclick="toggleJson('${post.fileUrl}')">
+                            <div class="flex-1 pr-4">
+                                <h2 class="text-[#f2f3f5] text-[1.1rem] font-bold leading-tight mb-1">${post.title}</h2>
+                                <div class="flex items-center gap-1">
+                                    <span class="username" style="color: ${post.userColor || '#5865f2'}">${post.author}:</span>
+                                    <span class="text-[#dbdee1] text-sm truncate max-w-[300px]">${post.message}</span>
+                                </div>
+                                <div class="mt-2 flex items-center gap-3">
+                                    <span class="text-xs">🦭</span>
+                                    <span class="timestamp">${post.date}</span>
+                                    <a href="${post.fileUrl}" download class="text-[0.7rem] text-blue-400 uppercase font-bold hover:underline">Download</a>
+                                </div>
+                            </div>
+                            ${post.thumbnail ? `<img src="${post.thumbnail}" class="thumbnail">` : ''}
+                        </div>
+                        <pre id="${post.fileUrl}" class="json-preview p-4 rounded-lg text-xs overflow-x-auto max-h-64"><code>${content}</code></pre>
+                    `;
+                    feed.appendChild(postContainer);
+                }
+            } catch (e) {
+                feed.innerHTML = `<p class="text-red-400 text-center">Check posts.json format.</p>`;
+            }
+        }
+
+        function toggleJson(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        loadForum();
+    </script>
+</body>
+</html>
