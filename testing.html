@@ -12,10 +12,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
 
     <style>
-        /* Simple & Clean Theme */
         body { background-color: #0f1113; color: #eef1f4; font-family: ui-sans-serif, system-ui, sans-serif; }
         
-        /* Modern Cards */
         .macro-card { 
             background-color: #1a1d21; 
             border: 1px solid #2d3136; 
@@ -28,11 +26,11 @@
             transform: translateY(-2px);
         }
 
-        /* Popup Setup */
         .modal-content { background-color: #1a1d21; border-radius: 16px; border: 1px solid #374151; }
-        
-        /* Code Block Styling */
         pre[class*="language-"] { margin: 0; background: transparent !important; font-size: 0.9rem; }
+        
+        /* Clean video player styling */
+        video { width: 100%; border-radius: 8px; margin-bottom: 1.5rem; background: #000; }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
@@ -84,10 +82,13 @@
                     </button>
                 </div>
 
-                <div class="bg-black/50 p-6 overflow-auto relative group">
-                    <button @click="copyJson" class="absolute top-4 right-4 bg-gray-800 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors">
-                        {{ copyStatus }}
-                    </button>
+                <div class="bg-black/50 p-6 overflow-auto">
+                    <div v-if="activePost.videoUrl">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Video Preview</p>
+                        <video controls :src="activePost.videoUrl"></video>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Macro Data</p>
+                    </div>
+
                     <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
                 </div>
 
@@ -116,13 +117,12 @@
                 const activeJsonContent = ref('');
                 const activeFileName = ref('');
                 const activeFileSize = ref('0 KB');
-                const copyStatus = ref('Copy Code');
 
                 onMounted(async () => {
                     try {
                         const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
                         posts.value = await res.json();
-                    } catch (e) { console.error("Error loading JSON:", e); }
+                    } catch (e) { console.error(e); }
                     finally { isLoading.value = false; }
                 });
 
@@ -135,7 +135,7 @@
                     activePost.value = post;
                     activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'file.json';
                     isModalOpen.value = true;
-                    activeJsonContent.value = "Loading file content...";
+                    activeJsonContent.value = "Loading...";
                     document.body.style.overflow = 'hidden';
 
                     try {
@@ -145,17 +145,12 @@
                         const data = await res.json();
                         activeJsonContent.value = JSON.stringify(data, null, 4);
                         nextTick(() => { Prism.highlightAll(); });
-                    } catch (e) { activeJsonContent.value = "Error: Could not load the file. Check your links!"; }
+                    } catch (e) { activeJsonContent.value = "Error: Could not load the file."; }
                 };
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
-                const copyJson = async () => { 
-                    await navigator.clipboard.writeText(activeJsonContent.value);
-                    copyStatus.value = 'Copied!';
-                    setTimeout(() => copyStatus.value = 'Copy Code', 2000);
-                };
 
-                return { posts, isLoading, searchQuery, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, copyStatus, openModal, closeModal, copyJson };
+                return { posts, isLoading, searchQuery, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal };
             }
         }).mount('#app');
     </script>
