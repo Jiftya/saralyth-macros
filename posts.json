@@ -1,20 +1,10 @@
 [
     {
-        "title": "GW To Bridge I Did This legit So it Took A While lol",
-        "author": "DMAA SP",
+        "title": "Test For Site",
+        "author": "jifty",
         "userColor": "#5865f2",
-        "message": "Here (edited)",
+        "message": "test",
         "date": "9h ago",
-        "fileUrl": "files/bridge_legit.json",
-        "thumbnail": "images/screenshot1.png"
-    },
-    {
-        "title": "a bunch of macros from the old server",
-        "author": "snake [OLD ACCOUNT]",
-        "userColor": "#e67e22",
-        "message": "a",
-        "date": "9h ago",
-        "fileUrl": "files/macros.json",
+        "fileUrl": "test.json",
         "thumbnail": ""
-    }
-]
+    },
