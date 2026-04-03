@@ -12,90 +12,126 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
 
     <style>
-        body { background-color: #0f1113; color: #eef1f4; font-family: ui-sans-serif, system-ui, sans-serif; }
+        body { background-color: #080a0c; color: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
         
         .macro-card { 
-            background-color: #1a1d21; 
+            background-color: #121519; 
             border: 1px solid #2d3136; 
             transition: all 0.2s ease-in-out;
-            border-radius: 12px;
+            border-radius: 14px;
         }
         .macro-card:hover { 
-            background-color: #23272c; 
-            border-color: #4b5563;
+            background-color: #1a1e24; 
+            border-color: #3b82f6;
             transform: translateY(-2px);
         }
 
-        .modal-content { background-color: #1a1d21; border-radius: 16px; border: 1px solid #374151; }
-        pre[class*="language-"] { margin: 0; background: transparent !important; font-size: 0.9rem; }
+        .modal-blur { backdrop-filter: blur(12px); }
+        .modal-content { background-color: #0f1216; border-radius: 20px; border: 1px solid #374151; }
         
-        video { width: 100%; border-radius: 8px; margin-bottom: 1.5rem; background: #000; }
+        pre[class*="language-"] { 
+            margin: 0; 
+            background: #050608 !important; 
+            font-size: 0.95rem; 
+            border-radius: 10px;
+            padding: 1.5rem !important;
+            border: 1px solid #1f2937;
+        }
+        
+        video { width: 100%; border-radius: 12px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         [v-cloak] { display: none; }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #080a0c; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
 
-    <div id="app" class="max-w-4xl mx-auto" v-cloak>
+    <div id="app" class="max-w-5xl mx-auto" v-cloak>
         
         <header class="mb-12">
-            <h1 class="text-4xl font-bold text-white">Seralyth Macros</h1>
-            <p class="text-gray-400 mt-2">Just a collection of macros for the Seralyth mod menu.</p>
+            <h1 class="text-5xl font-black text-white tracking-tighter italic">Seralyth <span class="text-blue-500">Macros</span></h1>
             
-            <div class="mt-8">
-                <input v-model="searchQuery" type="text" placeholder="Search for a macro..." class="w-full bg-[#1a1d21] text-white border border-[#2d3136] rounded-xl py-3 px-5 focus:outline-none focus:border-blue-500 transition-all">
+            <div class="mt-10 flex flex-col md:flex-row gap-4">
+                <div class="relative flex-grow">
+                    <input v-model="searchQuery" type="text" :placeholder="searchType === 'title' ? 'Search by name...' : 'Search by profile...'" 
+                        class="w-full bg-[#121519] text-white text-lg border border-[#2d3136] rounded-xl py-5 px-14 focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-600">
+                    <div class="absolute left-5 top-1/2 -translate-y-1/2 text-blue-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                
+                <select v-model="searchType" class="bg-[#121519] text-white border border-[#2d3136] rounded-xl px-6 py-4 md:py-0 focus:outline-none focus:border-blue-500 cursor-pointer font-bold text-base">
+                    <option value="title">Name</option>
+                    <option value="author">Profile</option>
+                </select>
             </div>
         </header>
 
-        <div v-if="isLoading" class="text-gray-500 font-medium italic">Checking the files...</div>
+        <div v-if="isLoading" class="text-blue-400 font-bold animate-pulse tracking-widest uppercase">Fetching database...</div>
 
-        <div v-else class="space-y-4">
-            <div v-if="filteredPosts.length === 0" class="py-10 text-gray-500">
-                Nothing found for "{{ searchQuery }}"
+        <div v-else class="grid grid-cols-1 gap-4">
+            <div v-if="filteredPosts.length === 0" class="py-16 text-gray-400 text-center border-2 border-dashed border-[#2d3136] rounded-2xl text-xl">
+                No results found for "{{ searchQuery }}"
             </div>
 
-            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-5 flex justify-between items-center cursor-pointer">
-                <div class="flex items-center gap-5">
-                    <img v-if="post.thumbnail && post.thumbnail !== ''" :src="post.thumbnail" class="w-16 h-16 rounded-lg object-cover">
+            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group shadow-lg">
+                <div class="flex items-center gap-6 overflow-hidden">
+                    <img v-if="post.thumbnail && post.thumbnail !== ''" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover flex-shrink-0 border-2 border-gray-800 group-hover:border-blue-500 transition-colors">
                     
-                    <div>
-                        <h2 class="text-white text-xl font-semibold">{{ post.title || 'Untitled Macro' }}</h2>
-                        <div class="text-gray-400 text-sm">
-                            Created by <span class="text-blue-400">{{ post.author || 'Someone' }}</span> • {{ post.message || 'No description provided.' }}
+                    <div class="overflow-hidden">
+                        <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 transition-colors tracking-tight">{{ post.title || 'Untitled' }}</h2>
+                        <div class="text-lg mt-1 flex items-center flex-wrap gap-2">
+                            <span class="text-blue-500 font-extrabold uppercase text-xs tracking-widest bg-blue-500/10 px-2 py-0.5 rounded">@{{ post.author }}</span>
+                            <span class="text-white font-medium opacity-90 truncate max-w-md">{{ post.message || 'No description provided' }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="text-gray-500 text-sm hidden sm:block">Click to open</div>
+                <div class="text-blue-500 text-xs font-black uppercase tracking-[0.2em] hidden sm:block flex-shrink-0 ml-4 border border-blue-500/30 px-4 py-2 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">
+                    View
+                </div>
             </div>
         </div>
 
-        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" @click="closeModal">
-            <div class="modal-content w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden shadow-2xl" @click.stop>
+        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 modal-blur" @click="closeModal">
+            <div class="modal-content w-full max-w-5xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
                 
-                <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                <div class="p-8 border-b border-gray-800 flex justify-between items-center">
                     <div>
-                        <h3 class="text-white font-bold text-2xl">{{ activePost.title }}</h3>
-                        <p class="text-gray-400 text-sm mt-1">{{ activePost.message }}</p>
+                        <h3 class="text-white font-black text-3xl tracking-tight">{{ activePost.title }}</h3>
+                        <div class="text-base mt-1">
+                            <span class="text-gray-500 font-bold uppercase text-xs tracking-widest">Creator:</span>
+                            <span class="text-blue-400 font-black ml-2">@{{ activePost.author }}</span>
+                        </div>
                     </div>
-                    <button @click="closeModal" class="text-gray-500 hover:text-white p-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <button @click="closeModal" class="text-gray-500 hover:text-white transition-colors p-2 bg-white/5 rounded-full">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
-                <div class="bg-black/50 p-6 overflow-auto">
-                    <div v-if="activePost.videoUrl && activePost.videoUrl !== ''">
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Video Preview</p>
-                        <video controls :src="activePost.videoUrl"></video>
-                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Macro Data</p>
+                <div class="p-8 overflow-auto">
+                    
+                    <div class="flex flex-col md:flex-row gap-8 mb-10 items-stretch">
+                        <div v-if="activePost.message" class="flex-1 bg-white/5 p-6 rounded-2xl border border-white/10">
+                            <p class="text-white text-lg font-semibold leading-relaxed">{{ activePost.message }}</p>
+                        </div>
+
+                        <div v-if="activePost.videoUrl" class="flex-1 w-full">
+                            <video controls :src="activePost.videoUrl" class="shadow-2xl border border-white/10"></video>
+                        </div>
                     </div>
 
+                    <p class="text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] mb-3 ml-1">JSON Content</p>
                     <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
                 </div>
 
-                <div class="p-6 bg-[#23272c] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="text-gray-400 text-sm font-medium">
-                        File: {{ activeFileName }} ({{ activeFileSize }})
+                <div class="p-8 bg-[#161a1f] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div class="text-gray-400 text-sm font-mono flex items-center gap-3">
+                        <span class="bg-white/5 px-3 py-1 rounded border border-white/5">{{ activeFileName }}</span>
+                        <span class="opacity-50 text-xs">({{ activeFileSize }})</span>
                     </div>
-                    <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-xl font-bold text-center transition-all shadow-lg shadow-blue-900/20 active:scale-95">
+                    <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-14 py-5 rounded-2xl font-black text-center transition-all active:scale-95 shadow-lg shadow-blue-600/20 uppercase tracking-widest text-sm">
                         Download Now
                     </a>
                 </div>
@@ -111,6 +147,7 @@
                 const posts = ref([]);
                 const isLoading = ref(true);
                 const searchQuery = ref('');
+                const searchType = ref('title');
                 const isModalOpen = ref(false);
                 const activePost = ref({});
                 const activeJsonContent = ref('');
@@ -126,15 +163,20 @@
                 });
 
                 const filteredPosts = computed(() => {
-                    const q = searchQuery.value.toLowerCase();
-                    return posts.value.filter(p => p.title?.toLowerCase().includes(q) || p.author?.toLowerCase().includes(q));
+                    const q = searchQuery.value.toLowerCase().trim();
+                    if (!q) return posts.value;
+                    return posts.value.filter(p => {
+                        return searchType.value === 'title' 
+                            ? p.title?.toLowerCase().includes(q) 
+                            : p.author?.toLowerCase().includes(q);
+                    });
                 });
 
                 const openModal = async (post) => {
                     activePost.value = post;
-                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'file.json';
+                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'macro.json';
                     isModalOpen.value = true;
-                    activeJsonContent.value = "Loading...";
+                    activeJsonContent.value = "READING DATA...";
                     document.body.style.overflow = 'hidden';
 
                     try {
@@ -144,12 +186,12 @@
                         const data = await res.json();
                         activeJsonContent.value = JSON.stringify(data, null, 4);
                         nextTick(() => { Prism.highlightAll(); });
-                    } catch (e) { activeJsonContent.value = "Error: Could not load the file."; }
+                    } catch (e) { activeJsonContent.value = "// Critical Error: File could not be loaded."; }
                 };
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
 
-                return { posts, isLoading, searchQuery, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal };
+                return { posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal };
             }
         }).mount('#app');
     </script>
