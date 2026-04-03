@@ -5,5 +5,13 @@
     "message": "this is a macro on double walls",
     "fileUrl": "mqtkingDW2.json",
     "thumbnail": ""
+  },
+  {
+    "title": "Circle Map",
+    "author": "Jifty",
+    "message": "Starts next to gazebo and circles as long as trigger is held",
+    "fileUrl": "https://jiftya.github.io/saralyth-macros/circlemap.json",
+    "thumbnail": "",
+    "videoUrl": ""
   }
 ]
