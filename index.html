@@ -4,141 +4,240 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON Archive</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
     <style>
-        body { background-color: #0f0f10; color: #dbdee1; font-family: 'gg sans', sans-serif; overflow-x: hidden; }
+        /* Base Styling & Typography */
+        body { background-color: #111214; color: #dbdee1; font-family: 'gg sans', ui-sans-serif, system-ui, sans-serif; overflow-x: hidden; }
         
-        /* Forum Row Styles */
+        /* Premium Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2b2d31; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f4147; }
+
+        /* Smooth Interactions */
         .forum-card { 
-            background-color: #111214; 
-            border: 1px solid #1e1f22; 
-            border-radius: 12px; 
-            cursor: pointer;
-            transition: background-color 0.1s;
+            background-color: #1e1f22; 
+            border: 1px solid #2b2d31; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .forum-card:hover { background-color: #1a1b1e; }
-        .thumbnail { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; }
-
-        /* Modal / Popup Styles */
-        #modalOverlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 50;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+        .forum-card:hover { 
+            background-color: #232428; 
+            border-color: #383a40;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        .modal-content {
-            background-color: #2b2d31;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 600px;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-
-        /* Discord Code Block Style */
-        .code-container { background-color: #0c0d0e; padding: 16px; font-family: monospace; font-size: 14px; }
         
-        /* File Info Bar */
-        .file-info-bar {
-            background-color: #232428;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px solid #1e1f22;
-        }
+        /* Modal Animations */
+        .modal-enter-active, .modal-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-enter-from, .modal-leave-to { opacity: 0; backdrop-filter: blur(0px); }
+        .modal-enter-from .modal-content, .modal-leave-to .modal-content { transform: scale(0.97) translateY(10px); opacity: 0; }
+        
+        /* Code Block Refinements */
+        pre[class*="language-"] { margin: 0; border-radius: 0; background: transparent !important; text-shadow: none; font-size: 0.85rem; }
+        .token.property { color: #79c0ff; }
+        .token.string { color: #7ee787; }
+        .token.boolean, .token.number { color: #ff7b72; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-8 min-h-screen flex flex-col">
 
-    <div class="max-w-3xl mx-auto">
-        <div id="forumFeed" class="space-y-2"></div>
-    </div>
-
-    <div id="modalOverlay" onclick="closeModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div id="modalMessage" class="p-4 text-sm border-b border-white/5"></div>
-            <div class="code-container">
-                <pre id="modalJson" class="overflow-x-auto text-[#dbdee1]"><code></code></pre>
+    <div id="app" class="max-w-4xl mx-auto w-full flex-1" v-cloak>
+        
+        <header class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-white flex items-center gap-2 tracking-tight">
+                    <span class="text-gray-500 font-light">#</span> archive-logs
+                </h1>
+                <p class="text-sm text-gray-400 mt-1">Repository of shared configuration files.</p>
             </div>
-            <div class="file-info-bar">
-                <div class="flex items-center gap-3">
-                    <div class="bg-[#313338] p-2 rounded-md">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#b9bbbe"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                    </div>
-                    <div>
-                        <div id="modalFileName" class="text-sm font-semibold text-white">file.json</div>
-                        <div id="modalFileSize" class="text-xs text-gray-400">0 KB</div>
+            
+            <div class="relative w-full sm:w-72 group">
+                <input 
+                    v-model="searchQuery" 
+                    type="text" 
+                    placeholder="Search files or users..." 
+                    class="w-full bg-[#1e1f22] text-sm text-[#dbdee1] border border-[#2b2d31] rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-[#5865f2] focus:ring-1 focus:ring-[#5865f2] transition-all"
+                >
+                <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-3 group-focus-within:text-[#5865f2] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+        </header>
+
+        <div v-if="isLoading" class="space-y-3">
+            <div v-for="i in 4" :key="i" class="bg-[#1e1f22] rounded-xl p-4 flex gap-4 animate-pulse border border-[#2b2d31]">
+                <div class="flex-1 space-y-3 py-1">
+                    <div class="h-4 bg-[#2b2d31] rounded w-3/4"></div>
+                    <div class="h-3 bg-[#2b2d31] rounded w-1/2"></div>
+                </div>
+                <div class="w-16 h-16 bg-[#2b2d31] rounded-lg"></div>
+            </div>
+        </div>
+
+        <div v-else class="space-y-3">
+            <div v-if="filteredPosts.length === 0" class="text-center py-16 px-4 bg-[#1e1f22] rounded-xl border border-[#2b2d31] border-dashed">
+                <svg class="w-12 h-12 text-[#2b2d31] mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <p class="text-gray-400 font-medium">No results found for "{{ searchQuery }}"</p>
+            </div>
+
+            <div 
+                v-for="post in filteredPosts" 
+                :key="post.fileUrl"
+                @click="openModal(post)"
+                class="forum-card rounded-xl p-4 flex justify-between items-center cursor-pointer group"
+            >
+                <div class="flex-1 pr-6">
+                    <h2 class="text-[#f2f3f5] text-lg font-bold leading-tight mb-1.5 group-hover:text-[#00a8fc] transition-colors">{{ post.title || 'Untitled Archive' }}</h2>
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="text-white font-semibold">{{ post.author || 'System' }}</span>
+                        <span class="text-[#4e5058] text-xs">•</span>
+                        <span class="text-[#b5bac1] truncate max-w-[280px] sm:max-w-[500px]">{{ post.message || 'No attached description.' }}</span>
                     </div>
                 </div>
-                <div class="flex gap-4 text-gray-400">
-                    <span class="cursor-pointer hover:text-white">〈 〉</span>
-                    <span class="cursor-pointer hover:text-white">⤢</span>
-                    <span class="cursor-pointer hover:text-white">...</span>
+                <img v-if="post.thumbnail" :src="post.thumbnail" class="w-16 h-16 rounded-lg object-cover ring-1 ring-white/10 group-hover:ring-white/20 transition-all" loading="lazy">
+                <div v-else class="w-16 h-16 rounded-lg bg-[#2b2d31] flex items-center justify-center border border-white/5 text-2xl">
+                    📄
                 </div>
             </div>
         </div>
+
+        <transition name="modal">
+            <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" style="background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);" @click="closeModal">
+                <div class="bg-[#2b2d31] rounded-xl w-full max-w-3xl overflow-hidden shadow-2xl modal-content flex flex-col max-h-[85vh] border border-[#1e1f22]" @click.stop>
+                    
+                    <div class="px-6 py-4 border-b border-[#1e1f22] bg-[#2b2d31] flex justify-between items-center z-10">
+                        <div>
+                            <h3 class="text-white font-bold text-lg">{{ activePost.title || 'Viewing File' }}</h3>
+                            <p class="text-sm text-[#b5bac1] mt-0.5">{{ activePost.message || 'No description provided.' }}</p>
+                        </div>
+                        <button @click="closeModal" class="bg-[#1e1f22] hover:bg-[#ed4245] hover:text-white text-gray-400 p-2 rounded-lg transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-[#1e1f22] relative flex-1 overflow-auto group">
+                        <button @click="copyJson" class="absolute top-4 right-4 bg-[#2b2d31]/90 backdrop-blur hover:bg-[#5865f2] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-all shadow-lg opacity-0 group-hover:opacity-100 flex items-center gap-1.5 z-10 border border-white/10">
+                            <svg v-if="copyStatus === 'Copy'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {{ copyStatus }}
+                        </button>
+                        
+                        <div class="p-4 sm:p-6 min-h-[200px]">
+                            <pre class="!bg-transparent !m-0"><code class="language-json">{{ activeJsonContent }}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#232428] p-3 sm:px-6 sm:py-4 flex items-center justify-between z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-[#2b2d31] p-2.5 rounded-lg border border-white/5">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="#80848e"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-[#f2f3f5]">{{ activeFileName }}</div>
+                                <div class="text-xs text-[#949ba4] mt-0.5">{{ activeFileSize }} • JSON Format</div>
+                            </div>
+                        </div>
+                        <a :href="activePost.fileUrl" download class="bg-[#2b2d31] hover:bg-[#383a40] text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors border border-white/5">
+                            Download
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </transition>
     </div>
 
     <script>
-        async function loadForum() {
-            const feed = document.getElementById('forumFeed');
-            try {
-                const res = await fetch('./posts.json?v=' + Date.now());
-                const posts = await res.json();
-                feed.innerHTML = ''; 
+        const { createApp, ref, computed, onMounted, nextTick } = Vue;
 
-                posts.forEach(post => {
-                    const author = post.author || "User";
-                    const title = post.title || "Untitled Post";
-                    const message = post.message || "No description.";
-                    
-                    const postDiv = document.createElement('div');
-                    postDiv.className = "forum-card p-3 flex justify-between items-center";
-                    postDiv.onclick = () => openModal(post);
-
-                    postDiv.innerHTML = `
-                        <div class="flex-1 pr-4">
-                            <h2 class="text-[#f2f3f5] text-[1.1rem] font-bold leading-tight mb-1">${title}</h2>
-                            <div class="flex items-center gap-1 text-sm">
-                                <span class="text-white font-semibold">${author}:</span>
-                                <span class="text-[#dbdee1] truncate max-w-[280px]">${message}</span>
-                            </div>
-                        </div>
-                        ${post.thumbnail ? `<img src="${post.thumbnail}" class="thumbnail">` : ''}
-                    `;
-                    feed.appendChild(postDiv);
-                });
-            } catch (e) { console.error("Error loading forum feed."); }
-        }
-
-        async function openModal(post) {
-            document.getElementById('modalMessage').innerText = post.message || "No description.";
-            document.getElementById('modalFileName').innerText = post.fileUrl.split('/').pop();
-            
-            try {
-                const res = await fetch(post.fileUrl);
-                const size = res.headers.get("content-length");
-                document.getElementById('modalFileSize').innerText = size ? (size / 1024).toFixed(1) + " KB" : "Unknown Size";
+        createApp({
+            setup() {
+                const posts = ref([]);
+                const isLoading = ref(true);
+                const searchQuery = ref('');
                 
-                const data = await res.json();
-                document.getElementById('modalJson').innerText = JSON.stringify(data, null, 4);
-            } catch (e) {
-                document.getElementById('modalJson').innerText = "Error loading JSON file.";
+                const isModalOpen = ref(false);
+                const activePost = ref({});
+                const activeJsonContent = ref('');
+                const activeFileName = ref('');
+                const activeFileSize = ref('0 KB');
+                const copyStatus = ref('Copy');
+
+                onMounted(async () => {
+                    try {
+                        // Simulate a tiny network delay so the nice skeleton loader actually shows
+                        await new Promise(r => setTimeout(r, 400)); 
+                        const res = await fetch('./posts.json?v=' + Date.now());
+                        posts.value = await res.json();
+                    } catch (e) {
+                        console.error("Failed to load posts. Make sure posts.json exists.", e);
+                    } finally {
+                        isLoading.value = false;
+                    }
+                });
+
+                const filteredPosts = computed(() => {
+                    const query = searchQuery.value.toLowerCase();
+                    return posts.value.filter(p => 
+                        (p.title && p.title.toLowerCase().includes(query)) || 
+                        (p.author && p.author.toLowerCase().includes(query)) ||
+                        (p.fileUrl && p.fileUrl.toLowerCase().includes(query))
+                    );
+                });
+
+                const openModal = async (post) => {
+                    activePost.value = post;
+                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'unknown.json';
+                    activeJsonContent.value = '// Fetching data from repository...';
+                    activeFileSize.value = '...';
+                    copyStatus.value = 'Copy';
+                    isModalOpen.value = true;
+                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+                    if (post.fileUrl) {
+                        try {
+                            const res = await fetch(post.fileUrl);
+                            const size = res.headers.get("content-length");
+                            activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown Size";
+                            
+                            const data = await res.json();
+                            activeJsonContent.value = JSON.stringify(data, null, 4);
+                            
+                            nextTick(() => { Prism.highlightAll(); });
+                        } catch (e) {
+                            activeJsonContent.value = '{\n    "error": "Could not load file. Check path: ' + post.fileUrl + '"\n}';
+                            nextTick(() => { Prism.highlightAll(); });
+                        }
+                    }
+                };
+
+                const closeModal = () => { 
+                    isModalOpen.value = false; 
+                    document.body.style.overflow = ''; 
+                };
+
+                const copyJson = async () => {
+                    try {
+                        await navigator.clipboard.writeText(activeJsonContent.value);
+                        copyStatus.value = 'Copied!';
+                        setTimeout(() => copyStatus.value = 'Copy', 2000);
+                    } catch (err) {
+                        copyStatus.value = 'Failed';
+                    }
+                };
+
+                return {
+                    posts, isLoading, searchQuery, filteredPosts,
+                    isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, copyStatus,
+                    openModal, closeModal, copyJson
+                };
             }
-
-            document.getElementById('modalOverlay').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        loadForum();
+        }).mount('#app');
     </script>
 </body>
 </html>
