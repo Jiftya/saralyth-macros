@@ -12,230 +12,136 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
 
     <style>
-        /* Base Styling & Typography */
-        body { background-color: #111214; color: #dbdee1; font-family: 'gg sans', ui-sans-serif, system-ui, sans-serif; overflow-x: hidden; }
+        body { background-color: #0f1113; color: #eef1f4; font-family: ui-sans-serif, system-ui, sans-serif; }
         
-        /* Premium Scrollbars */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #2b2d31; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3f4147; }
-
-        /* Smooth Interactions */
-        .forum-card { 
-            background-color: #1e1f22; 
-            border: 1px solid #2b2d31; 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        .macro-card { 
+            background-color: #1a1d21; 
+            border: 1px solid #2d3136; 
+            transition: all 0.2s ease-in-out;
+            border-radius: 12px;
         }
-        .forum-card:hover { 
-            background-color: #232428; 
-            border-color: #383a40;
+        .macro-card:hover { 
+            background-color: #23272c; 
+            border-color: #4b5563;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        
-        /* Modal Animations */
-        .modal-enter-active, .modal-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        .modal-enter-from, .modal-leave-to { opacity: 0; backdrop-filter: blur(0px); }
-        .modal-enter-from .modal-content, .modal-leave-to .modal-content { transform: scale(0.97) translateY(10px); opacity: 0; }
-        
-        /* Code Block Refinements */
-        pre[class*="language-"] { margin: 0; border-radius: 0; background: transparent !important; text-shadow: none; font-size: 0.85rem; }
-        .token.property { color: #79c0ff; }
-        .token.string { color: #7ee787; }
-        .token.boolean, .token.number { color: #ff7b72; }
+
+        .modal-content { background-color: #1a1d21; border-radius: 16px; border: 1px solid #374151; }
+        pre[class*="language-"] { margin: 0; background: transparent !important; font-size: 0.9rem; }
     </style>
 </head>
-<body class="p-4 md:p-8 min-h-screen flex flex-col">
+<body class="p-6 md:p-12 min-h-screen">
 
-    <div id="app" class="max-w-4xl mx-auto w-full flex-1" v-cloak>
+    <div id="app" class="max-w-4xl mx-auto" v-cloak>
         
-        <header class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-white/5 pb-4">
-            <div>
-                <h1 class="text-3xl font-extrabold text-white flex items-center gap-2 tracking-tight">
-                    <span class="text-gray-500 font-light">#</span> Seraltyh Macros V1.0
-                </h1>
-                <p class="text-sm text-gray-400 mt-1">Repository of macro jsons for Seralyth mod menu</p>
-            </div>
+        <header class="mb-12">
+            <h1 class="text-4xl font-bold text-white">Seralyth Macros</h1>
+            <p class="text-gray-400 mt-2">Just a collection of macros for the Seralyth mod menu.</p>
             
-            <div class="relative w-full sm:w-72 group">
-                <input 
-                    v-model="searchQuery" 
-                    type="text" 
-                    placeholder="Search files or users..." 
-                    class="w-full bg-[#1e1f22] text-sm text-[#dbdee1] border border-[#2b2d31] rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-[#5865f2] focus:ring-1 focus:ring-[#5865f2] transition-all"
-                >
-                <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-3 group-focus-within:text-[#5865f2] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div class="mt-8">
+                <input v-model="searchQuery" type="text" placeholder="Search for a macro..." class="w-full bg-[#1a1d21] text-white border border-[#2d3136] rounded-xl py-3 px-5 focus:outline-none focus:border-blue-500 transition-all">
             </div>
         </header>
 
-        <div v-if="isLoading" class="space-y-3">
-            <div v-for="i in 4" :key="i" class="bg-[#1e1f22] rounded-xl p-4 flex gap-4 animate-pulse border border-[#2b2d31]">
-                <div class="flex-1 space-y-3 py-1">
-                    <div class="h-4 bg-[#2b2d31] rounded w-3/4"></div>
-                    <div class="h-3 bg-[#2b2d31] rounded w-1/2"></div>
-                </div>
-                <div class="w-16 h-16 bg-[#2b2d31] rounded-lg"></div>
-            </div>
-        </div>
+        <div v-if="isLoading" class="text-gray-500 font-medium">Checking the files...</div>
 
-        <div v-else class="space-y-3">
-            <div v-if="filteredPosts.length === 0" class="text-center py-16 px-4 bg-[#1e1f22] rounded-xl border border-[#2b2d31] border-dashed">
-                <svg class="w-12 h-12 text-[#2b2d31] mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <p class="text-gray-400 font-medium">No results found for "{{ searchQuery }}"</p>
+        <div v-else class="space-y-4">
+            <div v-if="filteredPosts.length === 0" class="py-10 text-gray-500">
+                Nothing found for "{{ searchQuery }}"
             </div>
 
-            <div 
-                v-for="post in filteredPosts" 
-                :key="post.fileUrl"
-                @click="openModal(post)"
-                class="forum-card rounded-xl p-4 flex justify-between items-center cursor-pointer group"
-            >
-                <div class="flex-1 pr-6">
-                    <h2 class="text-[#f2f3f5] text-lg font-bold leading-tight mb-1.5 group-hover:text-[#00a8fc] transition-colors">{{ post.title || 'Untitled Archive' }}</h2>
-                    <div class="flex items-center gap-2 text-sm">
-                        <span class="text-white font-semibold">{{ post.author || 'System' }}</span>
-                        <span class="text-[#4e5058] text-xs">•</span>
-                        <span class="text-[#b5bac1] truncate max-w-[280px] sm:max-w-[500px]">{{ post.message || 'No attached description.' }}</span>
-                    </div>
-                </div>
-                <img v-if="post.thumbnail" :src="post.thumbnail" class="w-16 h-16 rounded-lg object-cover ring-1 ring-white/10 group-hover:ring-white/20 transition-all" loading="lazy">
-                <div v-else class="w-16 h-16 rounded-lg bg-[#2b2d31] flex items-center justify-center border border-white/5 text-2xl">
-                    📄
-                </div>
-            </div>
-        </div>
-
-        <transition name="modal">
-            <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" style="background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);" @click="closeModal">
-                <div class="bg-[#2b2d31] rounded-xl w-full max-w-3xl overflow-hidden shadow-2xl modal-content flex flex-col max-h-[85vh] border border-[#1e1f22]" @click.stop>
+            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-5 flex justify-between items-center cursor-pointer">
+                <div class="flex items-center gap-5">
+                    <img v-if="post.thumbnail" :src="post.thumbnail" class="w-16 h-16 rounded-lg object-cover">
+                    <div v-else class="w-16 h-16 rounded-lg bg-[#2d3136] flex items-center justify-center text-2xl">📄</div>
                     
-                    <div class="px-6 py-4 border-b border-[#1e1f22] bg-[#2b2d31] flex justify-between items-center z-10">
-                        <div>
-                            <h3 class="text-white font-bold text-lg">{{ activePost.title || 'Viewing File' }}</h3>
-                            <p class="text-sm text-[#b5bac1] mt-0.5">{{ activePost.message || 'No description provided.' }}</p>
-                        </div>
-                        <button @click="closeModal" class="bg-[#1e1f22] hover:bg-[#ed4245] hover:text-white text-gray-400 p-2 rounded-lg transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </div>
-
-                    <div class="bg-[#1e1f22] relative flex-1 overflow-auto group">
-                        <button @click="copyJson" class="absolute top-4 right-4 bg-[#2b2d31]/90 backdrop-blur hover:bg-[#5865f2] text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-all shadow-lg opacity-0 group-hover:opacity-100 flex items-center gap-1.5 z-10 border border-white/10">
-                            <svg v-if="copyStatus === 'Copy'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            {{ copyStatus }}
-                        </button>
-                        
-                        <div class="p-4 sm:p-6 min-h-[200px]">
-                            <pre class="!bg-transparent !m-0"><code class="language-json">{{ activeJsonContent }}</code></pre>
+                    <div>
+                        <h2 class="text-white text-xl font-semibold">{{ post.title || 'Untitled Macro' }}</h2>
+                        <div class="text-gray-400 text-sm">
+                            Created by <span class="text-blue-400">{{ post.author || 'Someone' }}</span> • {{ post.message || 'No description provided.' }}
                         </div>
                     </div>
-
-                    <div class="bg-[#232428] p-3 sm:px-6 sm:py-4 flex items-center justify-between z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-[#2b2d31] p-2.5 rounded-lg border border-white/5">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="#80848e"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                            </div>
-                            <div>
-                                <div class="text-sm font-bold text-[#f2f3f5]">{{ activeFileName }}</div>
-                                <div class="text-xs text-[#949ba4] mt-0.5">{{ activeFileSize }} • JSON Format</div>
-                            </div>
-                        </div>
-                        <a :href="activePost.fileUrl" download class="bg-[#2b2d31] hover:bg-[#383a40] text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors border border-white/5">
-                            Download
-                        </a>
-                    </div>
-
                 </div>
+                <div class="text-gray-500 text-sm hidden sm:block">Click to open</div>
             </div>
-        </transition>
+        </div>
+
+        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" @click="closeModal">
+            <div class="modal-content w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden shadow-2xl" @click.stop>
+                
+                <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-white font-bold text-2xl">{{ activePost.title }}</h3>
+                        <p class="text-gray-400 text-sm mt-1">{{ activePost.message }}</p>
+                    </div>
+                    <button @click="closeModal" class="text-gray-500 hover:text-white p-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="bg-black/50 p-6 overflow-auto">
+                    <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
+                </div>
+
+                <div class="p-6 bg-[#23272c] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-gray-400 text-sm font-medium">
+                        File: {{ activeFileName }} ({{ activeFileSize }})
+                    </div>
+                    <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-xl font-bold text-center transition-all shadow-lg shadow-blue-900/20 active:scale-95">
+                        Download Now
+                    </a>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <script>
         const { createApp, ref, computed, onMounted, nextTick } = Vue;
-
         createApp({
             setup() {
                 const posts = ref([]);
                 const isLoading = ref(true);
                 const searchQuery = ref('');
-                
                 const isModalOpen = ref(false);
                 const activePost = ref({});
                 const activeJsonContent = ref('');
                 const activeFileName = ref('');
                 const activeFileSize = ref('0 KB');
-                const copyStatus = ref('Copy');
 
                 onMounted(async () => {
                     try {
-                        // Simulate a tiny network delay so the nice skeleton loader actually shows
-                        await new Promise(r => setTimeout(r, 400)); 
                         const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
                         posts.value = await res.json();
-                    } catch (e) {
-                        console.error("Failed to load posts. Make sure posts.json exists.", e);
-                    } finally {
-                        isLoading.value = false;
-                    }
+                    } catch (e) { console.error(e); }
+                    finally { isLoading.value = false; }
                 });
 
                 const filteredPosts = computed(() => {
-                    const query = searchQuery.value.toLowerCase();
-                    return posts.value.filter(p => 
-                        (p.title && p.title.toLowerCase().includes(query)) || 
-                        (p.author && p.author.toLowerCase().includes(query)) ||
-                        (p.fileUrl && p.fileUrl.toLowerCase().includes(query))
-                    );
+                    const q = searchQuery.value.toLowerCase();
+                    return posts.value.filter(p => p.title?.toLowerCase().includes(q) || p.author?.toLowerCase().includes(q));
                 });
 
                 const openModal = async (post) => {
                     activePost.value = post;
-                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'unknown.json';
-                    activeJsonContent.value = '// Fetching data from repository...';
-                    activeFileSize.value = '...';
-                    copyStatus.value = 'Copy';
+                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'file.json';
                     isModalOpen.value = true;
-                    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                    activeJsonContent.value = "Loading...";
+                    document.body.style.overflow = 'hidden';
 
-                    if (post.fileUrl) {
-                        try {
-                            const res = await fetch(post.fileUrl);
-                            const size = res.headers.get("content-length");
-                            activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown Size";
-                            
-                            const data = await res.json();
-                            activeJsonContent.value = JSON.stringify(data, null, 4);
-                            
-                            nextTick(() => { Prism.highlightAll(); });
-                        } catch (e) {
-                            activeJsonContent.value = '{\n    "error": "Could not load file. Check path: ' + post.fileUrl + '"\n}';
-                            nextTick(() => { Prism.highlightAll(); });
-                        }
-                    }
-                };
-
-                const closeModal = () => { 
-                    isModalOpen.value = false; 
-                    document.body.style.overflow = ''; 
-                };
-
-                const copyJson = async () => {
                     try {
-                        await navigator.clipboard.writeText(activeJsonContent.value);
-                        copyStatus.value = 'Copied!';
-                        setTimeout(() => copyStatus.value = 'Copy', 2000);
-                    } catch (err) {
-                        copyStatus.value = 'Failed';
-                    }
+                        const res = await fetch(post.fileUrl);
+                        const size = res.headers.get("content-length");
+                        activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown size";
+                        const data = await res.json();
+                        activeJsonContent.value = JSON.stringify(data, null, 4);
+                        nextTick(() => { Prism.highlightAll(); });
+                    } catch (e) { activeJsonContent.value = "Error: Could not load the file."; }
                 };
 
-                return {
-                    posts, isLoading, searchQuery, filteredPosts,
-                    isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, copyStatus,
-                    openModal, closeModal, copyJson
-                };
+                const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
+
+                return { posts, isLoading, searchQuery, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal };
             }
         }).mount('#app');
     </script>
