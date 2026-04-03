@@ -1,11 +1,9 @@
 [
     {
-        "title": "Test For Site",
-        "author": "jifty",
-        "userColor": "#5865f2",
-        "message": "test",
-        "date": "9h ago",
-        "fileUrl": "test.json",
-        "thumbnail": ""
+        "title": "testing",
+        "author": "by mqtking",
+        "message": "test message",
+        "fileUrl": "https://txt2html.sourceforge.net/sample.txt",
+        "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLmHKS2KBPFtxsfyWuLv7hg1r2kc57txWd1ikT971RInKA9YP6dSWHt2-CEjHTe0N2FuNp08LXsgriH7WrLtoke-XTNDjrvY3NuE38r97Ueg&s=10"
     },
 ]
