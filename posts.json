@@ -5,7 +5,7 @@
     "message": "starts on double walls and circles map",
     "fileUrl": "mqtkingDW2.json",
     "thumbnail": "",
-    "videoUrl": "https://www.youtube.com/embed/Cf3JLhDmfRg"
+    "videoUrl": "https://www.youtube.com/embed/1ahY6EIF5aI"
   },
   {
     "title": "Circle Map",
@@ -13,7 +13,7 @@
     "message": "Starts next to gazebo and circles as long as trigger is held",
     "fileUrl": "https://jiftya.github.io/saralyth-macros/circlemap.json",
     "thumbnail": "",
-    "videoUrl": ""
+    "videoUrl": "https://www.youtube.com/embed/ywVdO7b1Lkw"
   },
   {
     "title": "Slide Juke",
@@ -21,6 +21,6 @@
     "message": "starts between double walls and does slide juke",
     "fileUrl": "https://jiftya.github.io/saralyth-macros/slide-juke.json",
     "thumbnail": "",
-    "videoUrl": ""
+    "videoUrl": "https://www.youtube.com/embed/eF-wPXmvacE"
   }
 ]
