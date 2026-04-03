@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seralyth Macros</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
+    <style>
+        /* Base Styling & Custom Design Theme */
+        :root {
+            --base-bg: #050609;
+            --card-bg: #10141a;
+            --accent-glow: #0affda;
+            --font-inter: 'Inter', sans-serif;
+            --font-mono: 'Geist Mono', monospace;
+        }
+
+        body { background-color: var(--base-bg); color: #f8fafc; font-family: var(--font-inter); overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-glow); }
+
+        /* Premium Aero-Cyber Interactions */
+        .forum-card { 
+            background-color: var(--card-bg); 
+            border: 1px solid #1e293b; 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 16px;
+        }
+        
+        .forum-card:hover { 
+            background-color: #1a222a; 
+            border-color: var(--accent-glow);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 10px 30px -10px rgba(10, 255, 218, 0.3);
+        }
+        
+        /* Modal Glassmorphism */
+        .modal-enter-active, .modal-leave-active { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-enter-from, .modal-leave-to { opacity: 0; backdrop-filter: blur(0px); }
+        .modal-enter-from .modal-content, .modal-leave-to .modal-content { transform: scale(0.95) translateY(20px); opacity: 0; }
+        
+        /* Custom Prism Syntax Overrides (High-Tech Theme) */
+        pre[class*="language-"] { margin: 0; border-radius: 0; background: transparent !important; text-shadow: none; font-size: 0.9rem; font-family: var(--font-mono); line-height: 1.6; }
+        .token.property { color: var(--accent-glow) !important; font-weight: 500;}
+        .token.string { color: #f8fafc !important; }
+        .token.boolean, .token.number { color: #a855f7 !important; font-weight: 600; }
+        .token.punctuation { color: #475569 !important; }
+    </style>
+</head>
+<body class="p-6 md:p-12 min-h-screen flex flex-col">
+
+    <div id="app" class="max-w-5xl mx-auto w-full flex-1" v-cloak>
+        
+        <header class="mb-16 text-center border-b border-white/5 pb-10">
+            <h1 class="text-5xl font-extrabold text-white flex items-center justify-center gap-3 tracking-tighter" style="text-shadow: 0 0 15px var(--accent-glow);">
+                Seralyth Macros
+            </h1>
+            <p class="text-sm text-gray-400 mt-2 uppercase tracking-widest font-mono">
+                THE PREMIER CONFIG REPOSITORY
+            </p>
+            
+            <div class="relative w-full max-w-xl mx-auto mt-12 group">
+                <input v-model="searchQuery" type="text" placeholder="Search files, authors, or descriptions..." class="w-full bg-[#10141a]/60 backdrop-blur text-sm text-[#dbdee1] border border-white/10 rounded-full py-3 pl-12 pr-6 focus:outline-none focus:border-var(--accent-glow) focus:ring-1 focus:ring-var(--accent-glow) transition-all">
+                <svg class="w-5 h-5 text-gray-500 absolute left-4.5 top-3.5 group-focus-within:text-var(--accent-glow) transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+        </header>
+
+        <div v-if="isLoading" class="space-y-4">
+            <div v-for="i in 4" :key="i" class="bg-[#10141a] rounded-2xl p-5 flex gap-5 animate-pulse border border-white/5">
+                <div class="w-20 h-20 bg-[#1e293b] rounded-xl"></div>
+                <div class="flex-1 space-y-4 py-2">
+                    <div class="h-5 bg-[#1e293b] rounded w-3/4"></div>
+                    <div class="h-4 bg-[#1e293b] rounded w-1/2"></div>
+                </div>
+            </div>
+        </div>
+
+        <div v-else class="space-y-4">
+            <div v-if="filteredPosts.length === 0" class="text-center py-20 px-6 bg-[#10141a] rounded-2xl border border-white/5 border-dashed">
+                <p class="text-gray-400 font-medium">No results found for "{{ searchQuery }}"</p>
+            </div>
+
+            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="forum-card rounded-2xl p-5 flex justify-between items-center cursor-pointer group">
+                <div class="flex items-center gap-5 flex-1 pr-10">
+                    <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover ring-1 ring-white/10" loading="lazy">
+                    <div v-else class="w-20 h-20 rounded-xl bg-[#1e293b] flex items-center justify-center border border-white/10 text-4xl text-white/10">
+                        📄
+                    </div>
+                    
+                    <div class="flex-1">
+                        <h2 class="text-[#f2f3f5] text-xl font-bold leading-tight mb-1.5 transition-colors group-hover:text-white" style="font-family: var(--font-inter); tracking-tight;">{{ post.title || 'Untitled' }}</h2>
+                        <div class="flex items-center gap-3 text-sm text-[#b5bac1]">
+                            <span>by {{ post.author || 'User' }}</span>
+                            <span class="text-[#4e5058] text-xs">•</span>
+                            <span class="truncate max-w-[300px] sm:max-w-[450px] font-medium text-gray-200">{{ post.message || 'No description.' }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="opacity-0 group-hover:opacity-100 transition-all duration-300 ml-5 pr-2">
+                    <span class="text-xs font-mono uppercase tracking-wider text-var(--accent-glow)" style="text-shadow: 0 0 10px var(--accent-glow);">
+                        View Data
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <transition name="modal">
+            <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8" style="background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);" @click="closeModal">
+                <div class="bg-[#10141a] rounded-[24px] w-full max-w-4xl overflow-hidden shadow-2xl modal-content flex flex-col max-h-[90vh] border border-white/5" @click.stop>
+                    
+                    <div class="px-8 py-5 border-b border-white/5 flex justify-between items-center z-10 bg-[#10141a]">
+                        <div>
+                            <h3 class="text-white font-extrabold text-2xl tracking-tighter" style="text-shadow: 0 0 10px var(--accent-glow);">
+                                {{ activePost.title || 'VIEWING FILE DATA' }}
+                            </h3>
+                            <p class="text-sm text-[#b5bac1] mt-1">{{ activePost.message || 'No attached description provided for this config.' }}</p>
+                        </div>
+                        <button @click="closeModal" class="bg-[#1e293b] hover:bg-red-500 hover:text-white text-gray-400 p-2.5 rounded-xl transition-all">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-black/40 relative flex-1 overflow-auto group">
+                        
+                        <div class="absolute top-0 left-0 right-0 h-10 border-b border-white/5 px-6 flex items-center justify-between text-xs text-gray-500 font-mono z-10 bg-black/40">
+                            <span>RAW DATA TERMINAL</span>
+                            <button @click="copyJson" class="bg-[#1e293b] text-white px-3 py-1 rounded text-xs opacity-80 hover:opacity-100 group-hover:opacity-100 transition-opacity font-bold">
+                                {{ copyStatus }}
+                            </button>
+                        </div>
+                        
+                        <div class="p-8 pt-16 font-mono text-sm leading-relaxed" style="color: #f8fafc;">
+                            <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#1e293b] p-4 sm:px-8 sm:py-5 flex items-center justify-between z-10">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-var(--base-bg) p-3 rounded-xl border border-white/5 text-xl text-var(--accent-glow)">📄</div>
+                            <div>
+                                <div class="text-sm font-bold text-white font-mono tracking-tight">{{ activeFileName }}</div>
+                                <div class="text-xs text-gray-400 mt-1 uppercase tracking-wider font-mono">{{ activeFileSize }} • RAW JSON FORMAT</div>
+                            </div>
+                        </div>
+                        <a :href="activePost.fileUrl" download class="bg-var(--accent-glow) hover:scale-105 hover:bg-white text-black px-6 py-3 rounded-full text-sm font-bold transition-all" style="font-family: var(--font-inter); tracking-tight;"> Download </a>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, nextTick } = Vue;
+        createApp({
+            setup() {
+                const posts = ref([]);
+                const isLoading = ref(true);
+                const searchQuery = ref('');
+                const isModalOpen = ref(false);
+                const activePost = ref({});
+                const activeJsonContent = ref('');
+                const activeFileName = ref('');
+                const activeFileSize = ref('0 KB');
+                const copyStatus = ref('Copy');
+
+                // Correct URL as requested
+                onMounted(async () => {
+                    try {
+                        const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
+                        posts.value = await res.json();
+                    } catch (e) { console.error(e); }
+                    finally {
+                        // Small extra delay so the nice loading skeleton actually appears
+                        setTimeout(() => { isLoading.value = false; }, 300);
+                    }
+                });
+
+                const filteredPosts = computed(() => {
+                    const q = searchQuery.value.toLowerCase();
+                    return posts.value.filter(p => p.title?.toLowerCase().includes(q) || p.author?.toLowerCase().includes(q));
+                });
+
+                const openModal = async (post) => {
+                    activePost.value = post;
+                    // Clean filename handling
+                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'unknown.json';
+                    isModalOpen.value = true;
+                    activeJsonContent.value = "LOADING MACRO DATA FROM REPOSITORY...";
+                    
+                    // Don't scroll background page
+                    document.body.style.overflow = 'hidden';
+
+                    try {
+                        const res = await fetch(post.fileUrl);
+                        
+                        // Calculate clean size
+                        const size = res.headers.get("content-length");
+                        activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown";
+                        
+                        const data = await res.json();
+                        activeJsonContent.value = JSON.stringify(data, null, 4);
+                        
+                        // Prism re-highlighting logic
+                        nextTick(() => { Prism.highlightAll(); });
+                    } catch (e) { activeJsonContent.value = "Error loading macro file. Ensure the path is correct."; }
+                };
+
+                const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
+                const copyJson = async () => { 
+                    await navigator.clipboard.writeText(activeJsonContent.value);
+                    copyStatus.value = 'Copied!';
+                    setTimeout(() => copyStatus.value = 'Copy', 2000);
+                };
+
+                return { posts, isLoading, searchQuery, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, copyStatus, openModal, closeModal, copyJson };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
