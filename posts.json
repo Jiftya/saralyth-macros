@@ -1,8 +1,10 @@
 [
   {
-    "title": "Double Walls",
+    "title": "Mqtking Double Walls",
     "author": "mqtking",
-    "message": "Fast route",
-    "fileUrl": "mqtkingDW2.json"
+    "message": "this is a macro on double walls",
+    "fileUrl": "mqtkingDW2.json",
+    "thumbnail": "image.png",
+    "videoUrl": "https://your-link-here.com/video.mp4"
   }
 ]
