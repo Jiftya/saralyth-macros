@@ -13,5 +13,13 @@
     "fileUrl": "https://jiftya.github.io/saralyth-macros/circlemap.json",
     "thumbnail": "",
     "videoUrl": ""
+  },
+  {
+    "title": "Slide Juke",
+    "author": "Jifty",
+    "message": "starts between double walls and does slide juke",
+    "fileUrl": "https://jiftya.github.io/saralyth-macros/slide-juke.json",
+    "thumbnail": "",
+    "videoUrl": ""
   }
 ]
