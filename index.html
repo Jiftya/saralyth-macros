@@ -172,7 +172,7 @@
                     try {
                         // Simulate a tiny network delay so the nice skeleton loader actually shows
                         await new Promise(r => setTimeout(r, 400)); 
-                        const res = await fetch('./posts.json?v=' + Date.now());
+                        const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json' + Date.now());
                         posts.value = await res.json();
                     } catch (e) {
                         console.error("Failed to load posts. Make sure posts.json exists.", e);
