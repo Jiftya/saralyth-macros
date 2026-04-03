@@ -17,14 +17,13 @@
         .macro-card { 
             background-color: #16191d; 
             border: 1px solid #2d3136; 
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease-in-out;
             border-radius: 14px;
         }
         .macro-card:hover { 
             background-color: #1e2227; 
             border-color: #3b82f6;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
         }
 
         .modal-blur { backdrop-filter: blur(8px); }
@@ -34,122 +33,101 @@
             margin: 0; 
             background: #0d0f11 !important; 
             font-size: 0.85rem; 
-            border-radius: 8px;
-            padding: 1rem !important;
+            border-radius: 10px;
+            padding: 1.25rem !important;
         }
         
-        video { width: 100%; border-radius: 12px; margin-bottom: 1.5rem; background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        video { width: 100%; border-radius: 12px; margin-bottom: 1.5rem; background: #000; }
         [v-cloak] { display: none; }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0b0d0f; }
         ::-webkit-scrollbar-thumb { background: #2d3136; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
 
     <div id="app" class="max-w-5xl mx-auto" v-cloak>
         
-        <header class="mb-12 text-center md:text-left">
-            <h1 class="text-5xl font-extrabold text-white tracking-tight">Seralyth <span class="text-blue-500">Macros</span></h1>
-            <p class="text-gray-400 mt-3 text-lg">A curated repository for Seralyth mod menu configurations.</p>
+        <header class="mb-12">
+            <h1 class="text-4xl font-black text-white tracking-tight">Seralyth <span class="text-blue-500">Macros</span></h1>
             
-            <div class="mt-10 flex flex-col md:flex-row gap-3">
+            <div class="mt-8 flex flex-col md:flex-row gap-3">
                 <div class="relative flex-grow">
                     <input v-model="searchQuery" type="text" :placeholder="searchType === 'title' ? 'Search macro names...' : 'Search by author...'" 
-                        class="w-full bg-[#16191d] text-white border border-[#2d3136] rounded-xl py-4 px-12 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all">
+                        class="w-full bg-[#16191d] text-white border border-[#2d3136] rounded-xl py-4 px-12 focus:outline-none focus:border-blue-500 transition-all">
                     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                 </div>
                 
-                <select v-model="searchType" class="bg-[#16191d] text-white border border-[#2d3136] rounded-xl px-4 py-4 md:py-0 focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer">
+                <select v-model="searchType" class="bg-[#16191d] text-white border border-[#2d3136] rounded-xl px-4 py-4 md:py-0 focus:outline-none focus:border-blue-500 cursor-pointer font-medium">
                     <option value="title">Macro Name</option>
-                    <option value="author">Profile/Author</option>
+                    <option value="author">Author Profile</option>
                 </select>
             </div>
         </header>
 
-        <div v-if="isLoading" class="flex flex-col items-center py-20">
-            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-4"></div>
-            <div class="text-gray-500 font-medium">Fetching macro database...</div>
-        </div>
+        <div v-if="isLoading" class="text-gray-500 italic">Loading macros...</div>
 
-        <div v-else>
-            <div v-if="filteredPosts.length === 0" class="py-20 text-center border-2 border-dashed border-[#2d3136] rounded-2xl">
-                <p class="text-gray-500 text-lg">No macros found matching your search.</p>
-                <button @click="searchQuery = ''" class="mt-4 text-blue-400 hover:underline">Clear filters</button>
+        <div v-else class="grid grid-cols-1 gap-3">
+            <div v-if="filteredPosts.length === 0" class="py-10 text-gray-500 text-center border border-[#2d3136] rounded-xl">
+                No macros found for "{{ searchQuery }}"
             </div>
 
-            <div class="grid grid-cols-1 gap-4">
-                <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex flex-col sm:flex-row justify-between items-center cursor-pointer gap-4">
-                    <div class="flex items-center gap-6 w-full">
-                        <div class="relative flex-shrink-0">
-                            <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border border-gray-700">
-                            <div v-else class="w-20 h-20 rounded-xl bg-gray-800 flex items-center justify-center text-gray-600">
-                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path></svg>
-                            </div>
-                        </div>
-                        
-                        <div class="overflow-hidden">
-                            <h2 class="text-white text-xl font-bold truncate">{{ post.title || 'Untitled Macro' }}</h2>
-                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                                <span class="bg-blue-500/10 text-blue-400 text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">
-                                    {{ post.author || 'Anonymous' }}
-                                </span>
-                                <span class="text-gray-400 text-sm line-clamp-1 italic">
-                                    "{{ post.message || 'No description.' }}"
-                                </span>
-                            </div>
+            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-5 flex justify-between items-center cursor-pointer group">
+                <div class="flex items-center gap-5 overflow-hidden">
+                    <img v-if="post.thumbnail && post.thumbnail !== ''" :src="post.thumbnail" class="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-gray-800">
+                    
+                    <div class="overflow-hidden">
+                        <h2 class="text-white text-lg font-bold truncate group-hover:text-blue-400 transition-colors">{{ post.title || 'Untitled' }}</h2>
+                        <div class="text-sm">
+                            <span class="text-blue-500 font-semibold">{{ post.author }}</span>
+                            <span class="text-gray-500 mx-2">•</span>
+                            <span class="text-gray-400 italic truncate">{{ post.message || 'No description' }}</span>
                         </div>
                     </div>
-                    <div class="flex-shrink-0">
-                        <span class="text-blue-500 font-bold group-hover:underline flex items-center gap-1">
-                            View <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
-                        </span>
-                    </div>
+                </div>
+                <div class="text-gray-600 text-xs font-bold uppercase tracking-widest hidden sm:block flex-shrink-0 ml-4">
+                    Open
                 </div>
             </div>
         </div>
 
-        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 modal-blur" @click="closeModal">
-            <div class="modal-content w-full max-w-4xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
+        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 modal-blur" @click="closeModal">
+            <div class="modal-content w-full max-w-4xl flex flex-col max-h-[85vh] overflow-hidden shadow-2xl" @click.stop>
                 
-                <div class="p-6 border-b border-gray-800 flex justify-between items-start">
+                <div class="p-6 border-b border-gray-800 flex justify-between items-center">
                     <div>
-                        <h3 class="text-white font-extrabold text-3xl">{{ activePost.title }}</h3>
-                        <div class="flex items-center gap-2 mt-2">
-                            <span class="text-gray-400">By</span>
-                            <span class="text-blue-400 font-semibold">{{ activePost.author }}</span>
+                        <h3 class="text-white font-bold text-2xl">{{ activePost.title }}</h3>
+                        <div class="text-sm mt-1">
+                            <span class="text-gray-500">Created by</span>
+                            <span class="text-blue-500 font-semibold ml-1">{{ activePost.author }}</span>
                         </div>
                     </div>
-                    <button @click="closeModal" class="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <button @click="closeModal" class="text-gray-500 hover:text-white transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
-                <div class="p-6 overflow-auto bg-[#0f1113]">
-                    <div v-if="activePost.videoUrl" class="mb-8">
-                        <h4 class="text-xs font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Demonstration</h4>
+                <div class="p-6 overflow-auto bg-black/20">
+                    <div v-if="activePost.message" class="mb-6 bg-blue-500/5 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                        <p class="text-gray-300 leading-relaxed">{{ activePost.message }}</p>
+                    </div>
+
+                    <div v-if="activePost.videoUrl">
                         <video controls :src="activePost.videoUrl"></video>
                     </div>
 
-                    <div class="mb-2 flex justify-between items-end">
-                        <h4 class="text-xs font-black text-gray-500 uppercase tracking-[0.2em]">Config Source</h4>
-                        <span class="text-[10px] text-gray-600 font-mono">{{ activeFileSize }}</span>
-                    </div>
                     <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
                 </div>
 
-                <div class="p-6 bg-[#1e2227] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <div class="text-gray-400 text-sm">
-                         <span class="block text-xs uppercase font-bold text-gray-600 mb-1">Raw Filename</span>
-                         {{ activeFileName }}
+                <div class="p-6 bg-[#1e2227] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-gray-500 text-xs font-mono truncate max-w-sm">
+                        {{ activeFileName }} <span class="text-gray-600 ml-2">({{ activeFileSize }})</span>
                     </div>
-                    <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-12 py-4 rounded-xl font-black text-center transition-all shadow-lg shadow-blue-600/20 active:scale-95 uppercase tracking-widest text-sm">
-                        Download JSON
+                    <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-xl font-bold text-center transition-all active:scale-95">
+                        Download Macro
                     </a>
                 </div>
 
@@ -164,7 +142,7 @@
                 const posts = ref([]);
                 const isLoading = ref(true);
                 const searchQuery = ref('');
-                const searchType = ref('title'); // New: search type toggle
+                const searchType = ref('title');
                 const isModalOpen = ref(false);
                 const activePost = ref({});
                 const activeJsonContent = ref('');
@@ -182,21 +160,18 @@
                 const filteredPosts = computed(() => {
                     const q = searchQuery.value.toLowerCase().trim();
                     if (!q) return posts.value;
-
                     return posts.value.filter(p => {
-                        if (searchType.value === 'title') {
-                            return p.title?.toLowerCase().includes(q);
-                        } else {
-                            return p.author?.toLowerCase().includes(q);
-                        }
+                        return searchType.value === 'title' 
+                            ? p.title?.toLowerCase().includes(q) 
+                            : p.author?.toLowerCase().includes(q);
                     });
                 });
 
                 const openModal = async (post) => {
                     activePost.value = post;
-                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'file.json';
+                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'macro.json';
                     isModalOpen.value = true;
-                    activeJsonContent.value = "Loading data...";
+                    activeJsonContent.value = "Fetching data...";
                     document.body.style.overflow = 'hidden';
 
                     try {
@@ -206,17 +181,12 @@
                         const data = await res.json();
                         activeJsonContent.value = JSON.stringify(data, null, 4);
                         nextTick(() => { Prism.highlightAll(); });
-                    } catch (e) { activeJsonContent.value = "Error: Could not load the configuration data."; }
+                    } catch (e) { activeJsonContent.value = "// Error: Could not load macro file."; }
                 };
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
 
-                return { 
-                    posts, isLoading, searchQuery, searchType, 
-                    filteredPosts, isModalOpen, activePost, 
-                    activeJsonContent, activeFileName, activeFileSize, 
-                    openModal, closeModal 
-                };
+                return { posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal };
             }
         }).mount('#app');
     </script>
