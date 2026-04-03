@@ -61,18 +61,18 @@
                     </div>
                 </div>
                 
-                <select v-model="searchType" class="bg-[#16191d] text-white border border-[#2d3136] rounded-xl px-4 py-4 md:py-0 focus:outline-none focus:border-blue-500 cursor-pointer font-medium">
-                    <option value="title">Macro Name</option>
-                    <option value="author">Author Profile</option>
+                <select v-model="searchType" class="bg-[#16191d] text-white border border-[#2d3136] rounded-xl px-4 py-4 md:py-0 focus:outline-none focus:border-blue-500 cursor-pointer font-medium text-sm">
+                    <option value="title">By Name</option>
+                    <option value="author">By Profile</option>
                 </select>
             </div>
         </header>
 
-        <div v-if="isLoading" class="text-gray-500 italic">Loading macros...</div>
+        <div v-if="isLoading" class="text-gray-600 italic">Searching files...</div>
 
         <div v-else class="grid grid-cols-1 gap-3">
             <div v-if="filteredPosts.length === 0" class="py-10 text-gray-500 text-center border border-[#2d3136] rounded-xl">
-                No macros found for "{{ searchQuery }}"
+                No results for "{{ searchQuery }}"
             </div>
 
             <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-5 flex justify-between items-center cursor-pointer group">
@@ -83,13 +83,13 @@
                         <h2 class="text-white text-lg font-bold truncate group-hover:text-blue-400 transition-colors">{{ post.title || 'Untitled' }}</h2>
                         <div class="text-sm">
                             <span class="text-blue-500 font-semibold">{{ post.author }}</span>
-                            <span class="text-gray-500 mx-2">•</span>
-                            <span class="text-gray-400 italic truncate">{{ post.message || 'No description' }}</span>
+                            <span class="text-gray-600 mx-2">•</span>
+                            <span class="text-gray-500 truncate">{{ post.message || 'No description' }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="text-gray-600 text-xs font-bold uppercase tracking-widest hidden sm:block flex-shrink-0 ml-4">
-                    Open
+                <div class="text-gray-700 text-xs font-bold uppercase tracking-widest hidden sm:block flex-shrink-0 ml-4">
+                    View
                 </div>
             </div>
         </div>
@@ -101,41 +101,37 @@
                     <div>
                         <h3 class="text-white font-bold text-2xl">{{ activePost.title }}</h3>
                         <div class="text-sm mt-1">
-                            <span class="text-gray-500">Created by</span>
+                            <span class="text-gray-500">By</span>
                             <span class="text-blue-500 font-semibold ml-1">{{ activePost.author }}</span>
                         </div>
                     </div>
-                    <button @click="closeModal" class="text-gray-500 hover:text-white transition-colors">
+                    <button @click="closeModal" class="text-gray-600 hover:text-white transition-colors">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
                 <div class="p-6 overflow-auto bg-black/20">
                     
-                    <div class="flex flex-col md:flex-row gap-6 mb-8 items-start">
-                        
-                        <div v-if="activePost.message" class="flex-1 bg-blue-500/5 border-l-4 border-blue-500 p-5 rounded-r-lg h-full">
-                            <h4 class="text-xs font-black text-blue-400 uppercase tracking-widest mb-2">Description</h4>
-                            <p class="text-gray-300 leading-relaxed">{{ activePost.message }}</p>
+                    <div class="flex flex-col md:flex-row gap-6 mb-8 items-stretch">
+                        <div v-if="activePost.message" class="flex-1 bg-[#23272c]/30 p-5 rounded-xl border border-gray-800/50">
+                            <p class="text-gray-400 text-sm leading-relaxed">{{ activePost.message }}</p>
                         </div>
 
                         <div v-if="activePost.videoUrl" class="flex-1 w-full">
-                            <h4 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Video Preview</h4>
                             <video controls :src="activePost.videoUrl" class="shadow-lg"></video>
                         </div>
-
                     </div>
 
-                    <h4 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Macro Configuration</h4>
+                    <p class="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2 ml-1">JSON Content</p>
                     <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
                 </div>
 
                 <div class="p-6 bg-[#1e2227] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="text-gray-500 text-xs font-mono truncate max-w-sm">
-                        {{ activeFileName }} <span class="text-gray-600 ml-2">({{ activeFileSize }})</span>
+                    <div class="text-gray-600 text-xs font-mono truncate max-w-sm">
+                        {{ activeFileName }} <span class="ml-1 opacity-50">({{ activeFileSize }})</span>
                     </div>
                     <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-xl font-bold text-center transition-all active:scale-95">
-                        Download Macro
+                        Download
                     </a>
                 </div>
 
@@ -177,9 +173,9 @@
 
                 const openModal = async (post) => {
                     activePost.value = post;
-                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'macro.json';
+                    activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'file.json';
                     isModalOpen.value = true;
-                    activeJsonContent.value = "Fetching data...";
+                    activeJsonContent.value = "Loading...";
                     document.body.style.overflow = 'hidden';
 
                     try {
@@ -189,7 +185,7 @@
                         const data = await res.json();
                         activeJsonContent.value = JSON.stringify(data, null, 4);
                         nextTick(() => { Prism.highlightAll(); });
-                    } catch (e) { activeJsonContent.value = "// Error: Could not load macro file."; }
+                    } catch (e) { activeJsonContent.value = "// Error loading file."; }
                 };
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
