@@ -38,7 +38,24 @@
             border: 1px solid #1f2937;
         }
         
-        video { width: 100%; border-radius: 12px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* Aspect ratio container for YouTube */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #000;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
         [v-cloak] { display: none; }
 
         ::-webkit-scrollbar { width: 10px; }
@@ -113,12 +130,19 @@
                 <div class="p-8 overflow-auto">
                     
                     <div class="flex flex-col md:flex-row gap-8 mb-10 items-stretch">
-                        <div v-if="activePost.message" class="flex-1 bg-white/5 p-6 rounded-2xl border border-white/10">
-                            <p class="text-white text-lg font-semibold leading-relaxed">{{ activePost.message }}</p>
+                        <div v-if="activePost.message" class="flex-1 bg-white/5 p-6 rounded-2xl border border-white/10 flex items-center">
+                            <p class="text-white text-xl font-bold leading-relaxed">{{ activePost.message }}</p>
                         </div>
 
                         <div v-if="activePost.videoUrl" class="flex-1 w-full">
-                            <video controls :src="activePost.videoUrl" class="shadow-2xl border border-white/10"></video>
+                            <div class="video-container">
+                                <iframe 
+                                    :src="getEmbedUrl(activePost.videoUrl)" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
                         </div>
                     </div>
 
@@ -162,6 +186,20 @@
                     finally { isLoading.value = false; }
                 });
 
+                // Helper to convert standard YT links to embed links
+                const getEmbedUrl = (url) => {
+                    if (!url) return '';
+                    let videoId = '';
+                    if (url.includes('v=')) {
+                        videoId = url.split('v=')[1].split('&')[0];
+                    } else if (url.includes('be/')) {
+                        videoId = url.split('be/')[1].split('?')[0];
+                    } else if (url.includes('embed/')) {
+                        return url;
+                    }
+                    return `https://www.youtube.com/embed/${videoId}`;
+                };
+
                 const filteredPosts = computed(() => {
                     const q = searchQuery.value.toLowerCase().trim();
                     if (!q) return posts.value;
@@ -191,7 +229,7 @@
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
 
-                return { posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal };
+                return { posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl };
             }
         }).mount('#app');
     </script>
