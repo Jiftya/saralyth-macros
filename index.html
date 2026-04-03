@@ -3,35 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON Forum Archive</title>
+    <title>JSON Archive</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f0f10; color: #dbdee1; font-family: 'gg sans', sans-serif; }
+        body { background-color: #0f0f10; color: #dbdee1; font-family: 'gg sans', sans-serif; overflow-x: hidden; }
+        
+        /* Forum Row Styles */
         .forum-card { 
             background-color: #111214; 
             border: 1px solid #1e1f22; 
             border-radius: 12px; 
-            transition: background-color 0.1s;
             cursor: pointer;
+            transition: background-color 0.1s;
         }
         .forum-card:hover { background-color: #1a1b1e; }
-        .json-preview { 
-            background-color: #0c0d0e; 
-            border: 1px solid #1e1f22; 
-            color: #23a559; 
-            font-family: monospace; 
-            display: none; /* Hidden until clicked */
-        }
-        .username { font-weight: 600; font-size: 0.9rem; }
-        .timestamp { color: #949ba4; font-size: 0.85rem; }
         .thumbnail { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; }
+
+        /* Modal / Popup Styles */
+        #modalOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background-color: #2b2d31;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        /* Discord Code Block Style */
+        .code-container { background-color: #0c0d0e; padding: 16px; font-family: monospace; font-size: 14px; }
+        
+        /* File Info Bar */
+        .file-info-bar {
+            background-color: #232428;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #1e1f22;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-3xl mx-auto">
-        <div id="forumFeed" class="space-y-2">
+        <div id="forumFeed" class="space-y-2"></div>
+    </div>
+
+    <div id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modalMessage" class="p-4 text-sm border-b border-white/5"></div>
+            <div class="code-container">
+                <pre id="modalJson" class="overflow-x-auto text-[#dbdee1]"><code></code></pre>
             </div>
+            <div class="file-info-bar">
+                <div class="flex items-center gap-3">
+                    <div class="bg-[#313338] p-2 rounded-md">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#b9bbbe"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    </div>
+                    <div>
+                        <div id="modalFileName" class="text-sm font-semibold text-white">file.json</div>
+                        <div id="modalFileSize" class="text-xs text-gray-400">0 KB</div>
+                    </div>
+                </div>
+                <div class="flex gap-4 text-gray-400">
+                    <span class="cursor-pointer hover:text-white">〈 〉</span>
+                    <span class="cursor-pointer hover:text-white">⤢</span>
+                    <span class="cursor-pointer hover:text-white">...</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -40,49 +90,52 @@
             try {
                 const res = await fetch('./posts.json?v=' + Date.now());
                 const posts = await res.json();
-                
                 feed.innerHTML = ''; 
 
-                for (const post of posts) {
-                    const postContainer = document.createElement('div');
-                    postContainer.className = "space-y-2";
+                posts.forEach(post => {
+                    const author = post.author || "User";
+                    const title = post.title || "Untitled Post";
+                    const message = post.message || "No description.";
+                    
+                    const postDiv = document.createElement('div');
+                    postDiv.className = "forum-card p-3 flex justify-between items-center";
+                    postDiv.onclick = () => openModal(post);
 
-                    // Load JSON content for the dropdown preview
-                    let content = "Loading...";
-                    try {
-                        const fileRes = await fetch(post.fileUrl);
-                        const jsonData = await fileRes.json();
-                        content = JSON.stringify(jsonData, null, 4);
-                    } catch (e) { content = "Error loading " + post.fileUrl; }
-
-                    postContainer.innerHTML = `
-                        <div class="forum-card p-3 flex justify-between items-center" onclick="toggleJson('${post.fileUrl}')">
-                            <div class="flex-1 pr-4">
-                                <h2 class="text-[#f2f3f5] text-[1.1rem] font-bold leading-tight mb-1">${post.title}</h2>
-                                <div class="flex items-center gap-1">
-                                    <span class="username" style="color: ${post.userColor || '#5865f2'}">${post.author}:</span>
-                                    <span class="text-[#dbdee1] text-sm truncate max-w-[300px]">${post.message}</span>
-                                </div>
-                                <div class="mt-2 flex items-center gap-3">
-                                    <span class="text-xs">🦭</span>
-                                    <span class="timestamp">${post.date}</span>
-                                    <a href="${post.fileUrl}" download class="text-[0.7rem] text-blue-400 uppercase font-bold hover:underline">Download</a>
-                                </div>
+                    postDiv.innerHTML = `
+                        <div class="flex-1 pr-4">
+                            <h2 class="text-[#f2f3f5] text-[1.1rem] font-bold leading-tight mb-1">${title}</h2>
+                            <div class="flex items-center gap-1 text-sm">
+                                <span class="text-white font-semibold">${author}:</span>
+                                <span class="text-[#dbdee1] truncate max-w-[280px]">${message}</span>
                             </div>
-                            ${post.thumbnail ? `<img src="${post.thumbnail}" class="thumbnail">` : ''}
                         </div>
-                        <pre id="${post.fileUrl}" class="json-preview p-4 rounded-lg text-xs overflow-x-auto max-h-64"><code>${content}</code></pre>
+                        ${post.thumbnail ? `<img src="${post.thumbnail}" class="thumbnail">` : ''}
                     `;
-                    feed.appendChild(postContainer);
-                }
-            } catch (e) {
-                feed.innerHTML = `<p class="text-red-400 text-center">Check posts.json format.</p>`;
-            }
+                    feed.appendChild(postDiv);
+                });
+            } catch (e) { console.error("Error loading forum feed."); }
         }
 
-        function toggleJson(id) {
-            const el = document.getElementById(id);
-            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        async function openModal(post) {
+            document.getElementById('modalMessage').innerText = post.message || "No description.";
+            document.getElementById('modalFileName').innerText = post.fileUrl.split('/').pop();
+            
+            try {
+                const res = await fetch(post.fileUrl);
+                const size = res.headers.get("content-length");
+                document.getElementById('modalFileSize').innerText = size ? (size / 1024).toFixed(1) + " KB" : "Unknown Size";
+                
+                const data = await res.json();
+                document.getElementById('modalJson').innerText = JSON.stringify(data, null, 4);
+            } catch (e) {
+                document.getElementById('modalJson').innerText = "Error loading JSON file.";
+            }
+
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
         }
 
         loadForum();
