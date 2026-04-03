@@ -47,10 +47,9 @@
         }
         .video-container { padding-bottom: 56.25%; height: 0; }
         .video-container iframe, .form-container iframe {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         }
-        .form-container { height: 70vh; }
+        .form-container { height: 75vh; }
 
         [v-cloak] { display: none; }
 
@@ -64,7 +63,10 @@
     <div id="app" class="max-w-5xl mx-auto" v-cloak>
         
         <header class="mb-12">
-            <h1 class="text-5xl font-black text-white tracking-tighter italic">Seralyth <span class="text-blue-500">Macros</span></h1>
+            <div class="flex items-center gap-4">
+                <h1 class="text-5xl font-black text-white tracking-tighter italic">Seralyth <span class="text-blue-500">Macros</span></h1>
+                <span class="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-3 py-1 rounded-full text-xs font-black tracking-widest mt-2 uppercase">v{{ currentVersion }}</span>
+            </div>
             
             <div class="mt-10 flex flex-col md:flex-row gap-4">
                 <div class="relative flex-grow">
@@ -90,7 +92,7 @@
                     </div>
                     <div>
                         <h2 class="text-white text-2xl font-black tracking-tight group-hover:text-blue-400 transition-colors">Request a Macro</h2>
-                        <p class="text-gray-500 text-sm font-bold uppercase tracking-widest mt-1">Submit your custom requests here</p>
+                        <p class="text-gray-500 text-sm font-bold uppercase tracking-widest mt-1">Custom submissions</p>
                     </div>
                 </div>
                 <div class="text-blue-500 text-xs font-black uppercase tracking-[0.2em] hidden sm:block border border-blue-500/30 px-6 py-3 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">
@@ -108,26 +110,40 @@
 
             <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group shadow-lg">
                 <div class="flex items-center gap-6 overflow-hidden">
-                    <img v-if="post.thumbnail && post.thumbnail !== ''" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover flex-shrink-0 border-2 border-gray-800 group-hover:border-blue-500 transition-colors">
+                    <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover flex-shrink-0 border-2 border-gray-800 group-hover:border-blue-500 transition-colors">
                     
                     <div class="overflow-hidden">
-                        <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 transition-colors tracking-tight">{{ post.title || 'Untitled' }}</h2>
+                        <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 transition-colors tracking-tight">{{ post.title }}</h2>
                         <div class="text-lg mt-1 flex items-center flex-wrap gap-2">
                             <span class="text-blue-500 font-extrabold uppercase text-xs tracking-widest bg-blue-500/10 px-2 py-0.5 rounded">@{{ post.author }}</span>
-                            <span class="text-white font-medium opacity-90 truncate max-w-md">{{ post.message || 'No description provided' }}</span>
+                            <span class="text-white font-medium opacity-90 truncate max-w-md">{{ post.message }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="text-blue-500 text-xs font-black uppercase tracking-[0.2em] hidden sm:block flex-shrink-0 ml-4 border border-blue-500/30 px-4 py-2 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">
+                <div class="text-blue-500 text-xs font-black uppercase tracking-[0.2em] hidden sm:block border border-blue-500/30 px-4 py-2 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">
                     View
                 </div>
+            </div>
+        </div>
+
+        <div v-if="isLogOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 modal-blur" @click="closeLog">
+            <div class="modal-content w-full max-w-lg flex flex-col shadow-2xl border-blue-500/50 p-8 text-center" @click.stop>
+                <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-blue-500/40">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h3 class="text-white font-black text-3xl tracking-tight mb-2">What's New</h3>
+                <p class="text-blue-500 font-bold text-xs tracking-widest uppercase mb-8">Version {{ currentVersion }}</p>
+                <p class="text-gray-200 text-lg font-medium leading-relaxed mb-10">{{ updateLogMessage }}</p>
+                <button @click="closeLog" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-lg shadow-blue-600/20">
+                    Acknowledge
+                </button>
             </div>
         </div>
 
         <div v-if="isFormOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 modal-blur" @click="isFormOpen = false">
             <div class="modal-content w-full max-w-4xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
                 <div class="p-8 border-b border-gray-800 flex justify-between items-center">
-                    <h3 class="text-white font-black text-3xl tracking-tight">Macro Request Form</h3>
+                    <h3 class="text-white font-black text-3xl tracking-tight">Macro Request</h3>
                     <button @click="isFormOpen = false" class="text-gray-500 hover:text-white transition-colors p-2 bg-white/5 rounded-full">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
@@ -176,7 +192,7 @@
                         <span class="opacity-50 text-xs">({{ activeFileSize }})</span>
                     </div>
                     <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-14 py-5 rounded-2xl font-black text-center transition-all active:scale-95 shadow-lg shadow-blue-600/20 uppercase tracking-widest text-sm">
-                        Download Now
+                        Download
                     </a>
                 </div>
             </div>
@@ -185,6 +201,14 @@
 
     <script>
         const { createApp, ref, computed, onMounted, nextTick } = Vue;
+        
+        // ==========================================
+        //  UPDATE CONFIGURATION (Edit this part)
+        // ==========================================
+        const currentVersion = "1.1"; // Change this to trigger popup for users
+        const updateLogMessage = "Added a Request system, YouTube previews, and high-visibility text!";
+        // ==========================================
+
         createApp({
             setup() {
                 const posts = ref([]);
@@ -193,12 +217,17 @@
                 const searchType = ref('title');
                 const isModalOpen = ref(false);
                 const isFormOpen = ref(false);
+                const isLogOpen = ref(false);
                 const activePost = ref({});
                 const activeJsonContent = ref('');
                 const activeFileName = ref('');
                 const activeFileSize = ref('0 KB');
 
                 onMounted(async () => {
+                    // Show log if version is new
+                    const savedVer = localStorage.getItem('seralyth_ver');
+                    if (savedVer !== currentVersion) isLogOpen.value = true;
+
                     try {
                         const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
                         posts.value = await res.json();
@@ -206,45 +235,50 @@
                     finally { isLoading.value = false; }
                 });
 
+                const closeLog = () => {
+                    localStorage.setItem('seralyth_ver', currentVersion);
+                    isLogOpen.value = false;
+                };
+
                 const getEmbedUrl = (url) => {
                     if (!url) return '';
-                    let videoId = '';
-                    if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
-                    else if (url.includes('be/')) videoId = url.split('be/')[1].split('?')[0];
+                    let id = '';
+                    if (url.includes('v=')) id = url.split('v=')[1].split('&')[0];
+                    else if (url.includes('be/')) id = url.split('be/')[1].split('?')[0];
                     else if (url.includes('embed/')) return url;
-                    return `https://www.youtube.com/embed/${videoId}`;
+                    return `https://www.youtube.com/embed/${id}`;
                 };
 
                 const filteredPosts = computed(() => {
                     const q = searchQuery.value.toLowerCase().trim();
                     if (!q) return posts.value;
-                    return posts.value.filter(p => {
-                        return searchType.value === 'title' 
-                            ? p.title?.toLowerCase().includes(q) 
-                            : p.author?.toLowerCase().includes(q);
-                    });
+                    return posts.value.filter(p => searchType.value === 'title' ? p.title?.toLowerCase().includes(q) : p.author?.toLowerCase().includes(q));
                 });
 
                 const openModal = async (post) => {
                     activePost.value = post;
                     activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'macro.json';
                     isModalOpen.value = true;
-                    activeJsonContent.value = "READING DATA...";
+                    activeJsonContent.value = "READING...";
                     document.body.style.overflow = 'hidden';
-
                     try {
                         const res = await fetch(post.fileUrl);
                         const size = res.headers.get("content-length");
-                        activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown size";
+                        activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown";
                         const data = await res.json();
                         activeJsonContent.value = JSON.stringify(data, null, 4);
                         nextTick(() => { Prism.highlightAll(); });
-                    } catch (e) { activeJsonContent.value = "// Critical Error: File could not be loaded."; }
+                    } catch (e) { activeJsonContent.value = "// Error loading file."; }
                 };
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
 
-                return { posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, isFormOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl };
+                return { 
+                    posts, isLoading, searchQuery, searchType, filteredPosts, 
+                    isModalOpen, isFormOpen, isLogOpen, activePost, 
+                    activeJsonContent, activeFileName, activeFileSize, 
+                    openModal, closeModal, getEmbedUrl, closeLog, currentVersion, updateLogMessage
+                };
             }
         }).mount('#app');
     </script>
