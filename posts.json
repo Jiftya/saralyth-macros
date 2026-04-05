@@ -30,5 +30,13 @@
     "fileUrl": "https://jiftya.github.io/saralyth-macros/stumpLoop.json",
     "thumbnail": "",
     "videoUrl": "https://www.youtube.com/embed/Y2D0b7FI7Y0"
+  },
+  {
+    "title": "Gazebo branch",
+    "author": "Odsu",
+    "message": "Starts Near Gazebo and Loops Around Map (originally named Macro 2)",
+    "fileUrl": "https://jiftya.github.io/saralyth-macros/filename.json",
+    "thumbnail": "",
+    "videoUrl": "https://streamable.com/e/i4zj0s"
   }
 ]
