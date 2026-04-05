@@ -38,5 +38,13 @@
     "fileUrl": "macro-2.json",
     "thumbnail": "",
     "videoUrl": "https://www.youtube.com/embed/5cw_Z9npIDw"
+  },
+  {
+    "title": "Long Walls and Branches",
+    "author": "Bloxx",
+    "message": "Starts on top of Stump and Branches + Wall runs throughout map",
+    "fileUrl": "lwab.json",
+    "thumbnail": "",
+    "videoUrl": "https://www.youtube.com/embed/tu5MmAQnB4Y"
   }
 ]
