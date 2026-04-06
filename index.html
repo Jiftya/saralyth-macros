@@ -139,7 +139,14 @@
                         <span class="bg-white/5 px-3 py-1 rounded border border-white/5">{{ activeFileName }}</span>
                         <span class="opacity-50 text-xs">({{ activeFileSize }})</span>
                     </div>
-                    <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-14 py-5 rounded-2xl font-black text-center transition-all uppercase tracking-widest text-sm shadow-lg shadow-blue-600/20">Download</a>
+                    <div class="flex gap-3 w-full sm:w-auto">
+                        <button @click="copyMacroLink" class="flex-1 sm:flex-initial bg-white/5 hover:bg-white/10 text-white px-8 py-5 rounded-2xl font-black text-center transition-all uppercase tracking-widest text-sm border border-white/10 flex items-center justify-center gap-2">
+                            <svg v-if="!showCopied" class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span v-if="showCopied" class="text-green-400">Copied!</span>
+                            <span v-else>Copy Link</span>
+                        </button>
+                        <a :href="activePost.fileUrl" download class="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-500 text-white px-14 py-5 rounded-2xl font-black text-center transition-all uppercase tracking-widest text-sm shadow-lg shadow-blue-600/20">Download</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -171,6 +178,7 @@
                 const activeJsonContent = ref('');
                 const activeFileName = ref('');
                 const activeFileSize = ref('0 KB');
+                const showCopied = ref(false);
 
                 const openModal = async (post) => {
                     activePost.value = post;
@@ -186,6 +194,16 @@
                         activeJsonContent.value = JSON.stringify(data, null, 4);
                         nextTick(() => { Prism.highlightAll(); });
                     } catch (e) { activeJsonContent.value = "// Error loading file."; }
+                };
+
+                const copyMacroLink = () => {
+                    const baseUrl = window.location.href.split('?')[0];
+                    const shareUrl = `${baseUrl}?macro=${encodeURIComponent(activePost.value.title)}`;
+                    
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        showCopied.value = true;
+                        setTimeout(() => { showCopied.value = false; }, 2000);
+                    });
                 };
 
                 onMounted(async () => {
@@ -205,20 +223,12 @@
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
                 
-                // ROBUST YOUTUBE EMBED LOGIC
                 const getEmbedUrl = (url) => {
                     if (!url) return '';
-                    // Pattern handles watch?v=, youtu.be/, shorts/, and standard embed strings
                     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
                     const match = url.match(regExp);
-
                     const videoId = (match && match[2].length === 11) ? match[2] : null;
-
-                    if (videoId) {
-                        return `https://www.youtube.com/embed/${videoId}`;
-                    }
-                    
-                    return url; // Fallback to original if regex fails
+                    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
                 };
 
                 const filteredPosts = computed(() => {
@@ -229,7 +239,8 @@
 
                 return { 
                     posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, isFormOpen, activePost, 
-                    activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl, currentVersion 
+                    activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl, 
+                    currentVersion, copyMacroLink, showCopied 
                 };
             }
         }).mount('#app');
