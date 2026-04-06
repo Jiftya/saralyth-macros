@@ -106,6 +106,24 @@
             </div>
         </div>
 
+        <div v-if="isLogOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 modal-blur" @click="isLogOpen = false">
+            <div class="modal-content w-full max-w-lg flex flex-col shadow-2xl" @click.stop>
+                <div class="p-8 border-b border-gray-800 flex justify-between items-center">
+                    <h3 class="text-white font-black text-2xl tracking-tight italic">Update <span class="text-blue-500">Log</span></h3>
+                    <button @click="isLogOpen = false" class="text-gray-500 hover:text-white p-2 bg-white/5 rounded-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+                <div class="p-10 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-6">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <p class="text-white text-xl font-bold leading-relaxed">{{ updateLogMessage }}</p>
+                </div>
+                <div class="p-8 bg-[#161a1f] border-t border-gray-800">
+                    <button @click="isLogOpen = false" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-black transition-all uppercase tracking-widest text-sm shadow-lg shadow-blue-600/20">Close</button>
+                </div>
+            </div>
+        </div>
+
         <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 modal-blur" @click="closeModal">
             <div class="modal-content w-full max-w-5xl flex flex-col max-h-[90vh] overflow-hidden shadow-2xl" @click.stop>
                 <div class="p-8 border-b border-gray-800 flex justify-between items-center">
@@ -166,6 +184,7 @@
                 const searchType = ref('title');
                 const isModalOpen = ref(false);
                 const isFormOpen = ref(false);
+                const isLogOpen = ref(false);
                 const activePost = ref({});
                 const activeJsonContent = ref('');
                 const activeFileName = ref('');
@@ -188,6 +207,13 @@
                 };
 
                 onMounted(async () => {
+                    // PERSISTENT UPDATE LOG LOGIC
+                    const lastSeen = localStorage.getItem('seralyth_last_version');
+                    if (updateLogMessage && lastSeen !== currentVersion) {
+                        isLogOpen.value = true;
+                        localStorage.setItem('seralyth_last_version', currentVersion);
+                    }
+
                     try {
                         const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
                         posts.value = await res.json();
@@ -217,8 +243,8 @@
                 });
 
                 return { 
-                    posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, isFormOpen, activePost, 
-                    activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl, currentVersion
+                    posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, isFormOpen, isLogOpen, activePost, 
+                    activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl, currentVersion, updateLogMessage
                 };
             }
         }).mount('#app');
