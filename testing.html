@@ -36,7 +36,7 @@
         .video-container { position: relative; overflow: hidden; border-radius: 12px; background: #000; border: 1px solid rgba(255,255,255,0.1); padding-bottom: 56.25%; height: 0; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         [v-cloak] { display: none; }
-        .discord-float { position: fixed; bottom: 2rem; right: 2rem; background-color: #5865F2; width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(88, 101, 242, 0.3); transition: all 0.3s ease; z-index: 100; }
+        .discord-float { position: fixed; bottom: 2rem; right: 2rem; background-color: #5865F2; width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(88, 101, 242, 0.3); transition: all 0.3s ease; z-index: 100; border: 1px solid rgba(255,255,255,0.1); }
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: #080a0c; }
         ::-webkit-scrollbar-thumb { background: #7809f5; border-radius: 10px; }
@@ -45,7 +45,9 @@
 <body class="p-6 md:p-12 min-h-screen">
 
     <div id="app" class="max-w-5xl mx-auto" v-cloak>
-        <a href="https://discord.gg/sb4EhhtMvk" target="_blank" class="discord-float"><svg class="w-9 h-9 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.666 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.29a.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .077.01c.12.098.246.196.373.29a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.874.89.076.076 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg></a>
+        <a href="https://discord.gg/sb4EhhtMvk" target="_blank" class="discord-float">
+            <svg class="w-9 h-9 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.666 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.29a.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .077.01c.12.098.246.196.373.29a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.874.89.076.076 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        </a>
         
         <header class="mb-12">
             <div class="flex items-center gap-4">
@@ -57,18 +59,17 @@
             </div>
         </header>
 
-        <div v-if="isLoading" class="text-blue-400 font-bold animate-pulse tracking-widest uppercase text-center py-20">Syncing with database...</div>
-        
+        <div v-if="isLoading" class="text-blue-400 font-bold animate-pulse tracking-widest uppercase">Fetching database...</div>
         <div v-else class="grid grid-cols-1 gap-4">
-            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group">
-                <div class="flex items-center gap-6">
-                    <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-800 group-hover:border-blue-500 transition-colors">
-                    <div>
-                        <h2 class="text-white text-2xl font-black group-hover:text-blue-400 transition-colors tracking-tight">{{ post.title }}</h2>
+            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group shadow-lg">
+                <div class="flex items-center gap-6 overflow-hidden">
+                    <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-800 group-hover:border-blue-500">
+                    <div class="overflow-hidden">
+                        <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 tracking-tight">{{ post.title }}</h2>
                         <span class="text-blue-500 font-extrabold uppercase text-xs tracking-widest bg-blue-500/10 px-2 py-0.5 rounded">@{{ post.author }}</span>
                     </div>
                 </div>
-                <div class="text-blue-500 text-xs font-black uppercase border border-blue-500/30 px-4 py-2 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">Open</div>
+                <div class="text-blue-500 text-xs font-black uppercase border border-blue-500/30 px-4 py-2 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">View</div>
             </div>
         </div>
 
@@ -77,33 +78,41 @@
                 <div class="p-8 border-b border-gray-800 flex justify-between items-center">
                     <div>
                         <h3 class="text-white font-black text-3xl tracking-tight">{{ activePost.title }}</h3>
-                        <p class="text-blue-400 font-black text-sm uppercase tracking-widest mt-1">@{{ activePost.author }}</p>
+                        <div class="text-base mt-1">
+                            <span class="text-gray-500 font-bold uppercase text-xs tracking-widest">Creator:</span>
+                            <span class="text-blue-400 font-black ml-2">@{{ activePost.author }}</span>
+                        </div>
                     </div>
-                    <button @click="closeModal" class="text-gray-500 hover:text-white p-2 bg-white/5 rounded-full"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                    <button @click="closeModal" class="text-gray-500 hover:text-white p-2 bg-white/5 rounded-full">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
 
                 <div class="p-8 overflow-auto">
-                    <div class="flex flex-col lg:flex-row gap-8 mb-10 items-start">
-                        <div v-if="activePost.message" class="flex-1 bg-white/5 p-6 rounded-2xl border border-white/10">
-                            <p class="text-white text-lg font-medium leading-relaxed">{{ activePost.message }}</p>
+                    <div class="flex flex-col md:flex-row gap-8 mb-10 items-stretch">
+                        <div v-if="activePost.message" class="flex-1 bg-white/5 p-6 rounded-2xl border border-white/10 flex items-center">
+                            <p class="text-white text-xl font-bold leading-relaxed">{{ activePost.message }}</p>
                         </div>
-                        <div v-if="activePost.videoUrl" class="flex-1 w-full lg:max-w-md">
+                        <div v-if="activePost.videoUrl" class="flex-1 w-full">
                             <div class="video-container">
                                 <iframe :src="getEmbedUrl(activePost.videoUrl)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                             </div>
                         </div>
                     </div>
-                    <p class="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em] mb-3">File Preview</p>
+                    <p class="text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] mb-3 ml-1">JSON Content</p>
                     <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
                 </div>
 
                 <div class="p-8 bg-[#161a1f] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <div class="text-gray-400 text-sm font-mono">{{ activeFileName }} <span class="opacity-40">({{ activeFileSize }})</span></div>
+                    <div class="text-gray-400 text-sm font-mono flex items-center gap-3">
+                        <span class="bg-white/5 px-3 py-1 rounded border border-white/5">{{ activeFileName }}</span>
+                        <span class="opacity-50 text-xs">({{ activeFileSize }})</span>
+                    </div>
                     <div class="flex gap-3 w-full sm:w-auto">
                         <button @click="copyMacroLink" class="flex-1 sm:flex-none border border-blue-500/50 hover:bg-blue-500/10 text-blue-500 px-8 py-5 rounded-2xl font-black transition-all uppercase tracking-widest text-sm">
                             {{ linkCopied ? 'Copied!' : 'Copy Link' }}
                         </button>
-                        <a :href="activePost.fileUrl" download class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white px-12 py-5 rounded-2xl font-black text-center transition-all uppercase tracking-widest text-sm shadow-lg shadow-blue-600/20">Download</a>
+                        <a :href="activePost.fileUrl" download class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white px-14 py-5 rounded-2xl font-black text-center transition-all uppercase tracking-widest text-sm shadow-lg shadow-blue-600/20">Download</a>
                     </div>
                 </div>
             </div>
@@ -125,17 +134,12 @@
                 const activeFileName = ref('');
                 const activeFileSize = ref('0 KB');
 
-                // IMPROVED: Logic for both direct embed links AND standard links
                 const getEmbedUrl = (url) => {
                     if (!url) return '';
-                    // 1. If it's already an embed link, leave it alone!
                     if (url.includes('/embed/')) return url;
-                    
-                    // 2. Otherwise, extract ID from other common YouTube formats
                     const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
                     const match = url.match(regExp);
                     const videoId = (match && match[1].length === 11) ? match[1] : null;
-                    
                     return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
                 };
 
@@ -151,16 +155,16 @@
                     activePost.value = post;
                     activeFileName.value = post.fileUrl ? post.fileUrl.split('/').pop() : 'macro.json';
                     isModalOpen.value = true;
-                    activeJsonContent.value = "Loading JSON data...";
+                    activeJsonContent.value = "READING...";
                     document.body.style.overflow = 'hidden';
                     try {
                         const res = await fetch(post.fileUrl);
                         const size = res.headers.get("content-length");
-                        activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Auto";
+                        activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown";
                         const data = await res.json();
                         activeJsonContent.value = JSON.stringify(data, null, 4);
                         nextTick(() => { Prism.highlightAll(); });
-                    } catch (e) { activeJsonContent.value = "// Could not fetch file content."; }
+                    } catch (e) { activeJsonContent.value = "// Error loading file."; }
                 };
 
                 onMounted(async () => {
@@ -183,11 +187,7 @@
                     return q ? posts.value.filter(p => p.title?.toLowerCase().includes(q) || p.author?.toLowerCase().includes(q)) : posts.value;
                 });
 
-                return { 
-                    posts, isLoading, searchQuery, filteredPosts, isModalOpen, activePost, 
-                    activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, 
-                    getEmbedUrl, copyMacroLink, linkCopied
-                };
+                return { posts, isLoading, searchQuery, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl, copyMacroLink, linkCopied };
             }
         }).mount('#app');
     </script>
