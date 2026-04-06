@@ -28,15 +28,18 @@
 
     <style>
         body { background-color: #080a0c; color: #ffffff; font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
-        .macro-card, .request-card { background-color: #121519; border: 1px solid #2d3136; transition: all 0.2s ease-in-out; border-radius: 14px; }
+        .macro-card, .request-card, .log-card { background-color: #121519; border: 1px solid #2d3136; transition: all 0.2s ease-in-out; border-radius: 14px; }
         .macro-card:hover, .request-card:hover { background-color: #1a1e24; border-color: #7809f5; transform: translateY(-2px); }
         .modal-blur { backdrop-filter: blur(12px); }
         .modal-content { background-color: #0f1216; border-radius: 20px; border: 1px solid #374151; }
         pre[class*="language-"] { margin: 0; background: #050608 !important; font-size: 0.95rem; border-radius: 10px; padding: 1.5rem !important; border: 1px solid #1f2937; }
-        .video-container { position: relative; overflow: hidden; border-radius: 12px; background: #000; border: 1px solid rgba(255,255,255,0.1); padding-bottom: 56.25%; height: 0; }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .video-container, .form-container { position: relative; overflow: hidden; border-radius: 12px; background: #000; border: 1px solid rgba(255,255,255,0.1); }
+        .video-container iframe, .form-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .video-container { padding-bottom: 56.25%; height: 0; }
+        .form-container { height: 75vh; }
         [v-cloak] { display: none; }
         .discord-float { position: fixed; bottom: 2rem; right: 2rem; background-color: #5865F2; width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(88, 101, 242, 0.3); transition: all 0.3s ease; z-index: 100; border: 1px solid rgba(255,255,255,0.1); }
+        .discord-float:hover { transform: translateY(-5px) scale(1.05); background-color: #4752C4; box-shadow: 0 12px 28px rgba(88, 101, 242, 0.5); }
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: #080a0c; }
         ::-webkit-scrollbar-thumb { background: #7809f5; border-radius: 10px; }
@@ -44,7 +47,7 @@
 </head>
 <body class="p-6 md:p-12 min-h-screen">
 
-    <div id="app" class="max-w-5xl mx-auto" v-cloak>
+    <div id="app" class="max-w-6xl mx-auto" v-cloak>
         <a href="https://discord.gg/sb4EhhtMvk" target="_blank" class="discord-float">
             <svg class="w-9 h-9 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.666 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.29a.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .077.01c.12.098.246.196.373.29a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.874.89.076.076 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
         </a>
@@ -52,30 +55,71 @@
         <header class="mb-12">
             <div class="flex items-center gap-4">
                 <h1 class="text-5xl font-black text-white tracking-tighter italic">Seralyth <span class="text-blue-500">Macros</span></h1>
-                <span class="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-3 py-1 rounded-full text-xs font-black tracking-widest mt-2 uppercase">v1.2</span>
+                <span class="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-3 py-1 rounded-full text-xs font-black tracking-widest mt-2 uppercase">v{{ currentVersion }}</span>
             </div>
-            <div class="mt-10">
-                <input v-model="searchQuery" type="text" placeholder="Search macros..." class="w-full bg-[#121519] text-white text-lg border border-[#2d3136] rounded-xl py-5 px-14 focus:outline-none focus:border-blue-500 transition-all">
+            
+            <div class="mt-10 flex flex-col md:flex-row gap-4">
+                <div class="relative flex-grow">
+                    <input v-model="searchQuery" type="text" :placeholder="searchType === 'title' ? 'Search by name...' : 'Search by profile...'" 
+                        class="w-full bg-[#121519] text-white text-lg border border-[#2d3136] rounded-xl py-5 px-14 focus:outline-none focus:border-blue-500 transition-all placeholder:text-gray-600">
+                    <div class="absolute left-5 top-1/2 -translate-y-1/2 text-blue-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                <select v-model="searchType" class="bg-[#121519] text-white border border-[#2d3136] rounded-xl px-6 py-4 md:py-0 focus:outline-none focus:border-blue-500 cursor-pointer font-bold text-base">
+                    <option value="title">Name</option>
+                    <option value="author">Profile</option>
+                </select>
             </div>
         </header>
 
-        <div v-if="isLoading" class="text-blue-400 font-bold animate-pulse tracking-widest uppercase">Fetching database...</div>
-        
-        <div v-else class="grid grid-cols-1 gap-4">
-            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group shadow-lg">
-                <div class="flex items-center gap-6 overflow-hidden">
-                    <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-800 group-hover:border-blue-500 transition-colors flex-shrink-0">
-                    <div class="overflow-hidden flex flex-col gap-1">
-                        <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 tracking-tight transition-colors">{{ post.title }}</h2>
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <span class="text-blue-500 font-extrabold uppercase text-[10px] tracking-widest bg-blue-500/10 px-2 py-0.5 rounded flex-shrink-0">@{{ post.author }}</span>
-                            <p v-if="post.message" class="text-gray-300 text-base truncate opacity-90 font-semibold tracking-tight">
-                                {{ post.message }}
-                            </p>
-                        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div class="lg:col-span-1">
+                <h3 class="text-blue-500 font-black uppercase text-xs tracking-[0.3em] mb-4 ml-1">Update Log</h3>
+                <div class="space-y-4">
+                    <div class="log-card p-4 border-l-4 border-blue-500">
+                        <p class="text-white font-bold text-sm">v1.2 - Video Fix</p>
+                        <p class="text-gray-500 text-xs mt-1">{{ updateLogMessage }}</p>
+                    </div>
+                    <div class="log-card p-4 border-l-4 border-gray-700">
+                        <p class="text-white font-bold text-sm">v1.1 - Search</p>
+                        <p class="text-gray-500 text-xs mt-1">Added syntax highlighting and profile search.</p>
                     </div>
                 </div>
-                <div class="text-blue-500 text-xs font-black uppercase border border-blue-500/30 px-4 py-2 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all ml-4">View</div>
+            </div>
+
+            <div class="lg:col-span-3 space-y-4">
+                <div @click="isFormOpen = true" class="request-card p-6 flex justify-between items-center cursor-pointer group shadow-lg border-blue-500/20">
+                    <div class="flex items-center gap-6">
+                        <div class="w-20 h-20 rounded-xl bg-blue-500/10 flex items-center justify-center border-2 border-blue-500/30 group-hover:bg-blue-500/20 transition-all">
+                            <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-white text-2xl font-black tracking-tight group-hover:text-blue-400 transition-colors">Request a Macro</h2>
+                            <p class="text-gray-500 text-sm font-bold uppercase tracking-widest mt-1">Custom submissions</p>
+                        </div>
+                    </div>
+                    <div class="text-blue-500 text-xs font-black uppercase tracking-[0.2em] hidden sm:block border border-blue-500/30 px-6 py-3 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">Open Form</div>
+                </div>
+
+                <div v-if="isLoading" class="text-blue-400 font-bold animate-pulse tracking-widest uppercase">Fetching database...</div>
+                
+                <div v-else class="space-y-4">
+                    <div v-if="filteredPosts.length === 0" class="py-16 text-gray-400 text-center border-2 border-dashed border-[#2d3136] rounded-2xl text-xl">No results found.</div>
+                    <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group shadow-lg">
+                        <div class="flex items-center gap-6 overflow-hidden">
+                            <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-800 group-hover:border-blue-500">
+                            <div class="overflow-hidden">
+                                <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 tracking-tight">{{ post.title }}</h2>
+                                <div class="text-lg mt-1 flex items-center flex-wrap gap-2">
+                                    <span class="text-blue-500 font-extrabold uppercase text-[10px] tracking-widest bg-blue-500/10 px-2 py-0.5 rounded flex-shrink-0">@{{ post.author }}</span>
+                                    <span class="text-white text-base font-semibold opacity-90 truncate max-w-md">{{ post.message }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-blue-500 text-xs font-black uppercase border border-blue-500/30 px-4 py-2 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">View</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -93,22 +137,18 @@
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-
                 <div class="p-8 overflow-auto">
                     <div class="flex flex-col md:flex-row gap-8 mb-10 items-stretch">
                         <div v-if="activePost.message" class="flex-1 bg-white/5 p-6 rounded-2xl border border-white/10 flex items-center">
                             <p class="text-white text-xl font-bold leading-relaxed">{{ activePost.message }}</p>
                         </div>
                         <div v-if="activePost.videoUrl" class="flex-1 w-full">
-                            <div class="video-container">
-                                <iframe :src="getEmbedUrl(activePost.videoUrl)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                            </div>
+                            <div class="video-container"><iframe :src="getEmbedUrl(activePost.videoUrl)" frameborder="0" allowfullscreen></iframe></div>
                         </div>
                     </div>
                     <p class="text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] mb-3 ml-1">JSON Content</p>
                     <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
                 </div>
-
                 <div class="p-8 bg-[#161a1f] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div class="text-gray-400 text-sm font-mono flex items-center gap-3">
                         <span class="bg-white/5 px-3 py-1 rounded border border-white/5">{{ activeFileName }}</span>
@@ -123,31 +163,36 @@
                 </div>
             </div>
         </div>
+        
+        <div v-if="isFormOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 modal-blur" @click="isFormOpen = false">
+            <div class="modal-content w-full max-w-4xl flex flex-col max-h-[90vh] shadow-2xl" @click.stop>
+                <div class="p-8 border-b border-gray-800 flex justify-between items-center">
+                    <h3 class="text-white font-black text-3xl tracking-tight">Macro Request</h3>
+                    <button @click="isFormOpen = false" class="text-gray-500 hover:text-white p-2 bg-white/5 rounded-full"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+                <div class="p-4 bg-black/20"><div class="form-container"><iframe src="https://docs.google.com/forms/d/e/1FAIpQLSd4IHIPxxoqYoZKClXiY8WBY7Fg2cjOhFPoAD5gFu_j2-PPuQ/viewform?embedded=true"></iframe></div></div>
+            </div>
+        </div>
     </div>
 
     <script>
         const { createApp, ref, computed, onMounted, nextTick } = Vue;
+        const currentVersion = "1.2"; 
+        const updateLogMessage = "Added Gazebo Branch Macro by Odsu";
 
         createApp({
             setup() {
                 const posts = ref([]);
                 const isLoading = ref(true);
                 const searchQuery = ref('');
+                const searchType = ref('title');
                 const isModalOpen = ref(false);
+                const isFormOpen = ref(false);
                 const linkCopied = ref(false);
                 const activePost = ref({});
                 const activeJsonContent = ref('');
                 const activeFileName = ref('');
                 const activeFileSize = ref('0 KB');
-
-                const getEmbedUrl = (url) => {
-                    if (!url) return '';
-                    if (url.includes('/embed/')) return url;
-                    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
-                    const match = url.match(regExp);
-                    const videoId = (match && match[1].length === 11) ? match[1] : null;
-                    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
-                };
 
                 const copyMacroLink = () => {
                     const fullUrl = `${window.location.origin}${window.location.pathname}?macro=${encodeURIComponent(activePost.value.title)}`;
@@ -177,6 +222,7 @@
                     try {
                         const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
                         posts.value = await res.json();
+                        
                         const urlParams = new URLSearchParams(window.location.search);
                         const macroParam = urlParams.get('macro');
                         if (macroParam) {
@@ -188,12 +234,27 @@
                 });
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
+                
+                const getEmbedUrl = (url) => {
+                    if (!url) return '';
+                    if (url.includes('/embed/')) return url;
+                    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+                    const match = url.match(regExp);
+                    const videoId = (match && match[1].length === 11) ? match[1] : null;
+                    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+                };
+
                 const filteredPosts = computed(() => {
                     const q = searchQuery.value.toLowerCase().trim();
-                    return q ? posts.value.filter(p => p.title?.toLowerCase().includes(q) || p.author?.toLowerCase().includes(q)) : posts.value;
+                    if (!q) return posts.value;
+                    return posts.value.filter(p => searchType.value === 'title' ? p.title?.toLowerCase().includes(q) : p.author?.toLowerCase().includes(q));
                 });
 
-                return { posts, isLoading, searchQuery, filteredPosts, isModalOpen, activePost, activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl, copyMacroLink, linkCopied };
+                return { 
+                    posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, isFormOpen, activePost, 
+                    activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl, currentVersion, 
+                    copyMacroLink, linkCopied, updateLogMessage
+                };
             }
         }).mount('#app');
     </script>
