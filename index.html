@@ -6,6 +6,21 @@
     <title>Seralyth Macros</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: {
+                            400: '#a357ff', // Lighter purple
+                            500: '#7809f5', // Your primary hex
+                            600: '#5b06ba', // Darker purple
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -22,7 +37,7 @@
         }
         .macro-card:hover, .request-card:hover { 
             background-color: #1a1e24; 
-            border-color: #3b82f6;
+            border-color: #7809f5; /* Updated to your hex */
             transform: translateY(-2px);
         }
 
@@ -45,15 +60,15 @@
             background: #000;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        .video-container { padding-bottom: 56.25%; height: 0; }
         .video-container iframe, .form-container iframe {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         }
+        .video-container { padding-bottom: 56.25%; height: 0; }
         .form-container { height: 75vh; }
 
         [v-cloak] { display: none; }
 
-        /* Discord Floating Button */
+        /* Discord Floating Button remains brand colored */
         .discord-float {
             position: fixed;
             bottom: 2rem;
@@ -78,7 +93,7 @@
 
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: #080a0c; }
-        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #7809f5; border-radius: 10px; } /* Updated to your hex */
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
