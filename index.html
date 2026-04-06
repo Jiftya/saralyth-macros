@@ -126,7 +126,9 @@
                             <p class="text-white text-xl font-bold leading-relaxed">{{ activePost.message }}</p>
                         </div>
                         <div v-if="activePost.videoUrl" class="flex-1 w-full">
-                            <div class="video-container"><iframe :src="getEmbedUrl(activePost.videoUrl)" frameborder="0" allowfullscreen></iframe></div>
+                            <div class="video-container">
+                                <iframe :src="getEmbedUrl(activePost.videoUrl)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
                         </div>
                     </div>
                     <p class="text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] mb-3 ml-1">JSON Content</p>
@@ -156,7 +158,6 @@
     <script>
         const { createApp, ref, computed, onMounted, nextTick } = Vue;
         const currentVersion = "1.2"; 
-        const updateLogMessage = "Added Gazebo Branch Macro by Odsu";
 
         createApp({
             setup() {
@@ -192,7 +193,6 @@
                         const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
                         posts.value = await res.json();
                         
-                        // AUTO-OPEN LOGIC
                         const urlParams = new URLSearchParams(window.location.search);
                         const macroParam = urlParams.get('macro');
                         if (macroParam) {
@@ -204,10 +204,21 @@
                 });
 
                 const closeModal = () => { isModalOpen.value = false; document.body.style.overflow = ''; };
+                
+                // ROBUST YOUTUBE EMBED LOGIC
                 const getEmbedUrl = (url) => {
                     if (!url) return '';
-                    let id = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('be/')[1]?.split('?')[0];
-                    return `https://www.youtube.com/embed/${id}`;
+                    // Pattern handles watch?v=, youtu.be/, shorts/, and standard embed strings
+                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+                    const match = url.match(regExp);
+
+                    const videoId = (match && match[2].length === 11) ? match[2] : null;
+
+                    if (videoId) {
+                        return `https://www.youtube.com/embed/${videoId}`;
+                    }
+                    
+                    return url; // Fallback to original if regex fails
                 };
 
                 const filteredPosts = computed(() => {
