@@ -73,32 +73,15 @@
             </div>
         </header>
 
-        <div class="mb-8">
-            <div @click="isFormOpen = true" class="request-card p-6 flex justify-between items-center cursor-pointer group shadow-lg border-blue-500/20">
-                <div class="flex items-center gap-6">
-                    <div class="w-20 h-20 rounded-xl bg-blue-500/10 flex items-center justify-center border-2 border-blue-500/30 group-hover:bg-blue-500/20 transition-all">
-                        <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M12 4v16m8-8H4"></path></svg>
-                    </div>
-                    <div>
-                        <h2 class="text-white text-2xl font-black tracking-tight group-hover:text-blue-400 transition-colors">Request a Macro</h2>
-                        <p class="text-gray-500 text-sm font-bold uppercase tracking-widest mt-1">Custom submissions</p>
-                    </div>
-                </div>
-                <div class="text-blue-500 text-xs font-black uppercase tracking-[0.2em] hidden sm:block border border-blue-500/30 px-6 py-3 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-all">Open Form</div>
-            </div>
-        </div>
-
         <div v-if="isLoading" class="text-blue-400 font-bold animate-pulse tracking-widest uppercase">Fetching database...</div>
         <div v-else class="grid grid-cols-1 gap-4">
-            <div v-if="filteredPosts.length === 0" class="py-16 text-gray-400 text-center border-2 border-dashed border-[#2d3136] rounded-2xl text-xl">No results found.</div>
             <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group shadow-lg">
                 <div class="flex items-center gap-6 overflow-hidden">
                     <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-800 group-hover:border-blue-500">
                     <div class="overflow-hidden">
                         <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 tracking-tight">{{ post.title }}</h2>
-                        <div class="text-lg mt-1 flex items-center flex-wrap gap-2">
+                        <div class="text-lg mt-1">
                             <span class="text-blue-500 font-extrabold uppercase text-xs tracking-widest bg-blue-500/10 px-2 py-0.5 rounded">@{{ post.author }}</span>
-                            <span class="text-white font-medium opacity-90 truncate max-w-md">{{ post.message }}</span>
                         </div>
                     </div>
                 </div>
@@ -120,6 +103,7 @@
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
+
                 <div class="p-8 overflow-auto">
                     <div class="flex flex-col md:flex-row gap-8 mb-10 items-stretch">
                         <div v-if="activePost.message" class="flex-1 bg-white/5 p-6 rounded-2xl border border-white/10 flex items-center">
@@ -129,34 +113,33 @@
                             <div class="video-container"><iframe :src="getEmbedUrl(activePost.videoUrl)" frameborder="0" allowfullscreen></iframe></div>
                         </div>
                     </div>
-                    <p class="text-[11px] font-black text-blue-500 uppercase tracking-[0.3em] mb-3 ml-1">JSON Content</p>
                     <pre><code class="language-json">{{ activeJsonContent }}</code></pre>
                 </div>
+
                 <div class="p-8 bg-[#161a1f] border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div class="text-gray-400 text-sm font-mono flex items-center gap-3">
                         <span class="bg-white/5 px-3 py-1 rounded border border-white/5">{{ activeFileName }}</span>
                         <span class="opacity-50 text-xs">({{ activeFileSize }})</span>
                     </div>
-                    <a :href="activePost.fileUrl" download class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-14 py-5 rounded-2xl font-black text-center transition-all uppercase tracking-widest text-sm shadow-lg shadow-blue-600/20">Download</a>
+                    
+                    <div class="flex gap-3 w-full sm:w-auto">
+                        <button @click="copyMacroLink" class="flex-1 sm:flex-none border border-blue-500/50 hover:bg-blue-500/10 text-blue-500 px-8 py-5 rounded-2xl font-black transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-2">
+                            <svg v-if="!linkCopied" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            {{ linkCopied ? 'Copied!' : 'Copy Link' }}
+                        </button>
+
+                        <a :href="activePost.fileUrl" download class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white px-12 py-5 rounded-2xl font-black text-center transition-all uppercase tracking-widest text-sm shadow-lg shadow-blue-600/20">
+                            Download
+                        </a>
+                    </div>
                 </div>
-            </div>
-        </div>
-        
-        <div v-if="isFormOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 modal-blur" @click="isFormOpen = false">
-            <div class="modal-content w-full max-w-4xl flex flex-col max-h-[90vh] shadow-2xl" @click.stop>
-                <div class="p-8 border-b border-gray-800 flex justify-between items-center">
-                    <h3 class="text-white font-black text-3xl tracking-tight">Macro Request</h3>
-                    <button @click="isFormOpen = false" class="text-gray-500 hover:text-white p-2 bg-white/5 rounded-full"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"></path></svg></button>
-                </div>
-                <div class="p-4 bg-black/20"><div class="form-container"><iframe src="https://docs.google.com/forms/d/e/1FAIpQLSd4IHIPxxoqYoZKClXiY8WBY7Fg2cjOhFPoAD5gFu_j2-PPuQ/viewform?embedded=true"></iframe></div></div>
             </div>
         </div>
     </div>
 
     <script>
         const { createApp, ref, computed, onMounted, nextTick } = Vue;
-        const currentVersion = "1.2"; 
-        const updateLogMessage = "Added Gazebo Branch Macro by Odsu";
 
         createApp({
             setup() {
@@ -165,11 +148,21 @@
                 const searchQuery = ref('');
                 const searchType = ref('title');
                 const isModalOpen = ref(false);
-                const isFormOpen = ref(false);
+                const linkCopied = ref(false);
                 const activePost = ref({});
                 const activeJsonContent = ref('');
                 const activeFileName = ref('');
                 const activeFileSize = ref('0 KB');
+
+                const copyMacroLink = () => {
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    const fullUrl = `${baseUrl}?macro=${encodeURIComponent(activePost.value.title)}`;
+                    
+                    navigator.clipboard.writeText(fullUrl).then(() => {
+                        linkCopied.value = true;
+                        setTimeout(() => { linkCopied.value = false; }, 2000);
+                    });
+                };
 
                 const openModal = async (post) => {
                     activePost.value = post;
@@ -192,7 +185,6 @@
                         const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
                         posts.value = await res.json();
                         
-                        // AUTO-OPEN LOGIC
                         const urlParams = new URLSearchParams(window.location.search);
                         const macroParam = urlParams.get('macro');
                         if (macroParam) {
@@ -217,8 +209,9 @@
                 });
 
                 return { 
-                    posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, isFormOpen, activePost, 
-                    activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, getEmbedUrl, currentVersion 
+                    posts, isLoading, searchQuery, searchType, filteredPosts, isModalOpen, activePost, 
+                    activeJsonContent, activeFileName, activeFileSize, openModal, closeModal, 
+                    getEmbedUrl, copyMacroLink, linkCopied, currentVersion: "1.2"
                 };
             }
         }).mount('#app');
