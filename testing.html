@@ -65,11 +65,13 @@
             <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group shadow-lg">
                 <div class="flex items-center gap-6 overflow-hidden">
                     <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-800 group-hover:border-blue-500 transition-colors flex-shrink-0">
-                    <div class="overflow-hidden">
+                    <div class="overflow-hidden flex flex-col gap-1">
                         <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 tracking-tight transition-colors">{{ post.title }}</h2>
-                        <div class="flex items-center gap-3 mt-1 overflow-hidden">
+                        <div class="flex items-center gap-3 overflow-hidden">
                             <span class="text-blue-500 font-extrabold uppercase text-[10px] tracking-widest bg-blue-500/10 px-2 py-0.5 rounded flex-shrink-0">@{{ post.author }}</span>
-                            <p v-if="post.message" class="text-gray-400 text-sm truncate opacity-70 font-medium italic">"{{ post.message }}"</p>
+                            <p v-if="post.message" class="text-gray-300 text-base truncate opacity-90 font-semibold tracking-tight">
+                                {{ post.message }}
+                            </p>
                         </div>
                     </div>
                 </div>
