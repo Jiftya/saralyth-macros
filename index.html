@@ -197,7 +197,7 @@
                 };
 
                 const copyMacroLink = () => {
-                    const baseUrl = window.location.href.split('?')[0];
+                    const baseUrl = window.location.origin + window.location.pathname;
                     const shareUrl = `${baseUrl}?macro=${encodeURIComponent(activePost.value.title)}`;
                     
                     navigator.clipboard.writeText(shareUrl).then(() => {
@@ -208,7 +208,8 @@
 
                 onMounted(async () => {
                     try {
-                        const res = await fetch('https://jiftya.github.io/saralyth-macros/posts.json?v=' + Date.now());
+                        // Updated to your new domain
+                        const res = await fetch('https://seralyth-macros.online/posts.json?v=' + Date.now());
                         posts.value = await res.json();
                         
                         const urlParams = new URLSearchParams(window.location.search);
@@ -217,7 +218,7 @@
                             const found = posts.value.find(p => p.title.toLowerCase() === macroParam.toLowerCase());
                             if (found) openModal(found);
                         }
-                    } catch (e) { console.error(e); }
+                    } catch (e) { console.error("Database fetch failed:", e); }
                     finally { isLoading.value = false; }
                 });
 
@@ -227,8 +228,7 @@
                     if (!url) return '';
                     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
                     const match = url.match(regExp);
-                    const videoId = (match && match[2].length === 11) ? match[2] : null;
-                    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+                    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url;
                 };
 
                 const filteredPosts = computed(() => {
