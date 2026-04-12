@@ -1,0 +1,9 @@
+{
+  "name": "seralyth-macro-vault",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "node scripts/generate-posts.js"
+  }
+}

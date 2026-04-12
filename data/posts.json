@@ -1,0 +1,62 @@
+[
+  {
+    "title": "Circle Map",
+    "author": "Jifty",
+    "message": "Starts next to gazebo and circles as long as trigger is held",
+    "fileUrl": "macros/Circle Map/macro.json",
+    "folder": "macros/Circle Map",
+    "thumbnail": "",
+    "videoUrl": "https://www.youtube.com/embed/ywVdO7b1Lkw",
+    "mp4Url": ""
+  },
+  {
+    "title": "Gazebo branch",
+    "author": "Odsu",
+    "message": "Starts Near Gazebo and Loops Around Map (originally named Macro 2)",
+    "fileUrl": "macros/Gazebo Branch/macro.json",
+    "folder": "macros/Gazebo Branch",
+    "thumbnail": "",
+    "videoUrl": "https://www.youtube.com/embed/5cw_Z9npIDw",
+    "mp4Url": ""
+  },
+  {
+    "title": "Long Walls and Branches",
+    "author": "Bloxx",
+    "message": "Starts on top of Stump and Branches + Wall runs throughout map",
+    "fileUrl": "macros/Long Walls and Branches/macro.json",
+    "folder": "macros/Long Walls and Branches",
+    "thumbnail": "",
+    "videoUrl": "https://www.youtube.com/embed/tu5MmAQnB4Y",
+    "mp4Url": ""
+  },
+  {
+    "title": "Mqtking Double Walls",
+    "author": "mqtking",
+    "message": "starts on double walls and circles map",
+    "fileUrl": "macros/Mqtking Double Walls/macro.json",
+    "folder": "macros/Mqtking Double Walls",
+    "thumbnail": "",
+    "videoUrl": "https://www.youtube.com/embed/1ahY6EIF5aI",
+    "mp4Url": ""
+  },
+  {
+    "title": "Slide Juke",
+    "author": "Jifty",
+    "message": "starts between double walls and does slide juke",
+    "fileUrl": "macros/Slide Juke/macro.json",
+    "folder": "macros/Slide Juke",
+    "thumbnail": "",
+    "videoUrl": "https://www.youtube.com/embed/eF-wPXmvacE",
+    "mp4Url": ""
+  },
+  {
+    "title": "Stump Loop",
+    "author": "Jifty",
+    "message": "Loops From Stump",
+    "fileUrl": "macros/Stump Loop/macro.json",
+    "folder": "macros/Stump Loop",
+    "thumbnail": "",
+    "videoUrl": "https://www.youtube.com/embed/Y2D0b7FI7Y0",
+    "mp4Url": ""
+  }
+]
