@@ -187,6 +187,7 @@
                     activeJsonContent.value = "READING...";
                     document.body.style.overflow = 'hidden';
                     try {
+                        // Protocol-relative fetch for the specific file
                         const res = await fetch(post.fileUrl);
                         const size = res.headers.get("content-length");
                         activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown";
@@ -197,7 +198,8 @@
                 };
 
                 const copyMacroLink = () => {
-                    const baseUrl = window.location.origin + window.location.pathname;
+                    // This creates a link using whatever protocol the visitor is using (http or https)
+                    const baseUrl = window.location.href.split('?')[0];
                     const shareUrl = `${baseUrl}?macro=${encodeURIComponent(activePost.value.title)}`;
                     
                     navigator.clipboard.writeText(shareUrl).then(() => {
@@ -208,8 +210,8 @@
 
                 onMounted(async () => {
                     try {
-                        // Updated to your new domain
-                        const res = await fetch('https://seralyth-macros.online/posts.json?v=' + Date.now());
+                        // Protocol-relative fetch: starts with // to use http or https automatically
+                        const res = await fetch('//seralyth-macros.online/posts.json?v=' + Date.now());
                         posts.value = await res.json();
                         
                         const urlParams = new URLSearchParams(window.location.search);
@@ -218,7 +220,14 @@
                             const found = posts.value.find(p => p.title.toLowerCase() === macroParam.toLowerCase());
                             if (found) openModal(found);
                         }
-                    } catch (e) { console.error("Database fetch failed:", e); }
+                    } catch (e) { 
+                        console.error("Database fetch failed:", e); 
+                        // Fallback: If the absolute URL fails, try a local relative path
+                        try {
+                            const retry = await fetch('posts.json');
+                            posts.value = await retry.json();
+                        } catch(err) { console.error("Total failure"); }
+                    }
                     finally { isLoading.value = false; }
                 });
 
