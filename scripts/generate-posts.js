@@ -3,7 +3,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const macrosDir = path.join(root, 'macros');
-const dataPath = path.join(root, 'data', 'posts.json');
+const dataPath = path.join(root, 'posts.json');
 
 function buildPath(parts) {
   const pathParts = Array.isArray(parts) ? parts : parts.split(path.sep);

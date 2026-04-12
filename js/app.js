@@ -64,13 +64,17 @@ createApp({
 
             try {
                 const res = await fetch(post.fileUrl);
+                if (!res.ok) {
+                    activeJsonContent.value = `// Error: HTTP ${res.status}`;
+                    return;
+                }
                 const data = await res.json();
                 activeJsonContent.value = JSON.stringify(data, null, 4);
                 const size = res.headers.get("content-length");
                 activeFileSize.value = size ? (size / 1024).toFixed(1) + " KB" : "Unknown";
                 nextTick(() => { setTimeout(() => { Prism.highlightAll(); }, 50); });
             } catch (e) {
-                activeJsonContent.value = "// Error loading file.";
+                activeJsonContent.value = `// Error: ${e.message}`;
             }
 
             if (post.folder) {
@@ -113,7 +117,7 @@ createApp({
                 }
             } catch (e) {
                 try {
-                    const retry = await fetch('data/posts.json');
+                    const retry = await fetch('posts.json');
                     posts.value = await retry.json();
                 } catch (err) {}
             } finally {
