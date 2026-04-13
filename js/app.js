@@ -24,54 +24,58 @@ createApp({
         const autoExpand = ref(localStorage.getItem('autoExpand') === 'true');
         const showDescriptions = ref(localStorage.getItem('showDescriptions') !== 'false');
 
-        const getCookie = (name) => {
-            const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-            return match ? decodeURIComponent(match[1]) : '';
-        };
+        // Supabase config
+        const SUPABASE_URL = 'https://wlqlevebosrjscuotkif.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_yTqIWghbBdDMeFR9yNupDw_1jyLxkfm';
 
-        const setCookie = (name, value, days = 365) => {
-            const expires = new Date(Date.now() + 864e5 * days).toUTCString();
-            document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
-        };
-
-        const loadVotes = () => {
-            try {
-                return JSON.parse(getCookie('seralyth_macro_votes') || '{}');
-            } catch {
-                return {};
-            }
-        };
-
-        const saveVotes = (value) => {
-            setCookie('seralyth_macro_votes', JSON.stringify(value), 365);
-        };
-
-        const voteStore = ref(loadVotes());
+        const voteStore = ref({});
 
         const getPostVotes = (post) => {
-            return voteStore.value[post.fileUrl] || { up: 0, down: 0, user: null };
+            return voteStore.value[post.fileUrl] || { up: 0, down: 0 };
         };
 
-        const castVote = (post, direction) => {
+        const castVote = async (post, direction) => {
             const key = post.fileUrl;
-            const stored = { ...(voteStore.value[key] || { up: 0, down: 0, user: null }) };
+            const current = voteStore.value[key] || { up: 0, down: 0 };
+            const newVotes = {
+                up: direction === 'up' ? current.up + 1 : current.up,
+                down: direction === 'down' ? current.down + 1 : current.down,
+            };
+            voteStore.value = { ...voteStore.value, [key]: newVotes };
 
-            if (stored.user === direction) {
-                stored[direction] = Math.max(0, stored[direction] - 1);
-                stored.user = null;
-            } else {
-                if (direction === 'up') {
-                    stored.up += 1;
-                    if (stored.user === 'down') stored.down = Math.max(0, stored.down - 1);
-                } else {
-                    stored.down += 1;
-                    if (stored.user === 'up') stored.up = Math.max(0, stored.up - 1);
+            try {
+                const url = `${SUPABASE_URL}/rest/v1/votes?macro_file_url=eq.${encodeURIComponent(key)}`;
+                const body = { macro_file_url: key, up_count: newVotes.up, down_count: newVotes.down };
+                let res = await fetch(url, {
+                    method: 'PATCH',
+                    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                if (res.status === 404) {
+                    res = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
+                        method: 'POST',
+                        headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                    });
                 }
-                stored.user = direction;
+            } catch (e) {
+                console.error('Vote save failed:', e);
             }
+        };
 
-            voteStore.value = { ...voteStore.value, [key]: stored };
-            saveVotes(voteStore.value);
+        const loadVotesFromSupabase = async () => {
+            try {
+                const result = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
+                    headers: { 'apikey': SUPABASE_KEY },
+                }).then(r => r.json());
+                if (Array.isArray(result)) {
+                    result.forEach(v => {
+                        voteStore.value[v.macro_file_url] = { up: v.up_count || 0, down: v.down_count || 0 };
+                    });
+                }
+            } catch (e) {
+                console.warn('Could not load votes from Supabase - votes unavailable');
+            }
         };
 
         const getStarRating = (post) => {
@@ -162,6 +166,7 @@ createApp({
         const goToApplications = () => { window.location.href = '/applications'; };
 
         onMounted(async () => {
+            loadVotesFromSupabase();
             try {
                 let postsUrl = '/posts.json';
                 if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
