@@ -47,6 +47,19 @@ function generatePosts() {
     const mp4File = files.find(file => path.extname(file).toLowerCase() === '.mp4');
     const mp4Url = mp4File ? buildPath(['macros', folderName, mp4File]) : '';
 
+    let author = existingPost?.author || 'Unknown';
+    try {
+      const macroData = JSON.parse(fs.readFileSync(macroPath, 'utf8'));
+      if (macroData.author) {
+        author = macroData.author;
+      } else if (macroData.name) {
+        const authorMatch = macroData.name.match(/ by ([^,;\n]+)/i);
+        if (authorMatch && authorMatch[1].trim()) {
+          author = authorMatch[1].trim();
+        }
+      }
+    } catch (e) {}
+
     let message = existingPost?.message || '';
     if (!message && fs.existsSync(descriptionPath)) {
       const descriptionText = fs.readFileSync(descriptionPath, 'utf8').trim();
@@ -56,7 +69,7 @@ function generatePosts() {
 
     return {
       title: existingPost?.title || folderName,
-      author: existingPost?.author || 'Unknown',
+      author: author,
       message: message || `Folder package for ${folderName}`,
       fileUrl: buildPath(['macros', folderName, 'macro.json']),
       folder: `macros/${folderName}`,

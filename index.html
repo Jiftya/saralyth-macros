@@ -272,20 +272,47 @@
             </div>
         </div>
 
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <input v-model="searchQuery" type="search" placeholder="Search by name, author, tag, map, or type"
+                class="w-full sm:flex-1 bg-slate-950/80 border border-white/10 text-white px-4 py-4 text-sm font-mono placeholder:text-gray-500 focus:border-purple-500 focus:outline-none" />
+            <select v-model="searchType" class="w-full sm:w-56 bg-slate-950/80 border border-white/10 text-white px-4 py-4 text-sm font-mono">
+                <option value="all">Any field</option>
+                <option value="title">Name</option>
+                <option value="author">Author</option>
+                <option value="tag">Tag</option>
+                <option value="map">Map</option>
+                <option value="type">Type</option>
+            </select>
+        </div>
+
         <div v-if="isLoading" class="text-blue-500 font-black animate-pulse tracking-widest uppercase text-center py-10 text-xl">Fetching database...</div>
         <div v-else class="grid grid-cols-1 gap-4">
-            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex justify-between items-center cursor-pointer group shadow-lg">
-                <div class="flex items-center gap-6 overflow-hidden">
-                    <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-800 group-hover:border-blue-500" loading="lazy">
-                    <div class="overflow-hidden">
-                        <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 tracking-tight">{{ post.title }}</h2>
-                        <div class="text-lg mt-1 flex items-center flex-wrap gap-2">
-                            <span class="text-blue-500 font-extrabold uppercase text-xs tracking-widest bg-blue-500/10 px-2 py-0.5 rounded">@{{ post.author }}</span>
-                            <span class="text-white font-medium opacity-90 truncate max-w-md">{{ post.message }}</span>
+            <div v-for="post in filteredPosts" :key="post.fileUrl" @click="openModal(post)" class="macro-card p-6 flex flex-col gap-4 cursor-pointer group shadow-lg">
+                <div class="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+                    <div class="flex items-center gap-6 overflow-hidden min-w-0">
+                        <img v-if="post.thumbnail" :src="post.thumbnail" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-800 group-hover:border-blue-500" loading="lazy">
+                        <div class="overflow-hidden min-w-0">
+                            <h2 class="text-white text-2xl font-black truncate group-hover:text-blue-400 tracking-tight">{{ post.title }}</h2>
+                            <div class="text-lg mt-1 flex items-center flex-wrap gap-2">
+                                <span v-if="post.author && post.author.toLowerCase() !== 'unknown'" class="text-blue-500 font-extrabold uppercase text-xs tracking-widest bg-blue-500/10 px-2 py-0.5">@{{ post.author }}</span>
+                                <span v-else class="text-gray-500 font-bold uppercase text-[10px] tracking-[0.22em]">Unknown author</span>
+                                <span class="text-white font-medium opacity-90 truncate max-w-md">{{ post.message }}</span>
+                            </div>
                         </div>
                     </div>
+                    <div class="text-purple-500 text-xs font-black uppercase border border-purple-500/30 px-4 py-2 rounded-lg group-hover:bg-purple-500 group-hover:text-white transition-all">View</div>
                 </div>
-                <div class="text-purple-500 text-xs font-black uppercase border border-purple-500/30 px-4 py-2 rounded-lg group-hover:bg-purple-500 group-hover:text-white transition-all">View</div>
+                <div class="flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-gray-400">
+                    <span v-for="tag in post.tags || []" :key="tag" class="border border-white/10 px-2 py-1">{{ tag }}</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button @click.stop="castVote(post, 'up')" :class="getPostVotes(post).user === 'up' ? 'bg-green-600 text-white' : 'bg-white/5 text-green-300'" class="border border-green-500 px-3 py-2 uppercase tracking-[0.2em]">▲ {{ getPostVotes(post).up }}</button>
+                    <button @click.stop="castVote(post, 'down')" :class="getPostVotes(post).user === 'down' ? 'bg-red-600 text-white' : 'bg-white/5 text-red-300'" class="border border-red-500 px-3 py-2 uppercase tracking-[0.2em]">▼ {{ getPostVotes(post).down }}</button>
+                    <div class="flex items-center gap-1 text-yellow-400">
+                        <span v-for="n in getStarRating(post)" :key="`star-${post.fileUrl}-${n}`">★</span>
+                        <span v-for="n in 5 - getStarRating(post)" :key="`star-empty-${post.fileUrl}-${n}`" class="text-gray-600">★</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -296,7 +323,8 @@
                         <h3 class="text-white font-black text-2xl tracking-tight">{{ activePost.title }}</h3>
                         <div class="text-sm mt-1">
                             <span class="text-gray-500 font-bold uppercase tracking-widest">Creator:</span>
-                            <span class="text-purple-400 font-black ml-2">@{{ activePost.author }}</span>
+                            <span v-if="activePost.author && activePost.author.toLowerCase() !== 'unknown'" class="text-purple-400 font-black ml-2">@{{ activePost.author }}</span>
+                            <span v-else class="text-gray-400 font-black ml-2">Unknown author</span>
                         </div>
                     </div>
                     <button @click="closeModal" class="text-gray-500 hover:text-white p-2 bg-white/5 rounded-full">

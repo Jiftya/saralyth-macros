@@ -6,7 +6,7 @@ createApp({
         const posts = ref([]);
         const isLoading = ref(true);
         const searchQuery = ref('');
-        const searchType = ref('title');
+        const searchType = ref('all');
         const isModalOpen = ref(false);
         const isFormOpen = ref(false);
         const isSettingsOpen = ref(false);
@@ -23,6 +23,63 @@ createApp({
         const compactMode = ref(localStorage.getItem('compactMode') === 'true');
         const autoExpand = ref(localStorage.getItem('autoExpand') === 'true');
         const showDescriptions = ref(localStorage.getItem('showDescriptions') !== 'false');
+
+        const getCookie = (name) => {
+            const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : '';
+        };
+
+        const setCookie = (name, value, days = 365) => {
+            const expires = new Date(Date.now() + 864e5 * days).toUTCString();
+            document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+        };
+
+        const loadVotes = () => {
+            try {
+                return JSON.parse(getCookie('seralyth_macro_votes') || '{}');
+            } catch {
+                return {};
+            }
+        };
+
+        const saveVotes = (value) => {
+            setCookie('seralyth_macro_votes', JSON.stringify(value), 365);
+        };
+
+        const voteStore = ref(loadVotes());
+
+        const getPostVotes = (post) => {
+            return voteStore.value[post.fileUrl] || { up: 0, down: 0, user: null };
+        };
+
+        const castVote = (post, direction) => {
+            const key = post.fileUrl;
+            const stored = { ...(voteStore.value[key] || { up: 0, down: 0, user: null }) };
+
+            if (stored.user === direction) {
+                stored[direction] = Math.max(0, stored[direction] - 1);
+                stored.user = null;
+            } else {
+                if (direction === 'up') {
+                    stored.up += 1;
+                    if (stored.user === 'down') stored.down = Math.max(0, stored.down - 1);
+                } else {
+                    stored.down += 1;
+                    if (stored.user === 'up') stored.up = Math.max(0, stored.up - 1);
+                }
+                stored.user = direction;
+            }
+
+            voteStore.value = { ...voteStore.value, [key]: stored };
+            saveVotes(voteStore.value);
+        };
+
+        const getStarRating = (post) => {
+            const { up, down } = getPostVotes(post);
+            const total = up + down;
+            if (!total) return 0;
+            return Math.max(1, Math.round((up / total) * 5));
+        };
 
         watch(theme, (value) => {
             document.documentElement.classList.toggle('light-theme', value === 'light');
@@ -106,7 +163,12 @@ createApp({
 
         onMounted(async () => {
             try {
-                const res = await fetch('//seralyth-macros.online/posts.json?v=' + Date.now());
+                let postsUrl = '/posts.json';
+                if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                    postsUrl = '//seralyth-macros.online/posts.json?v=' + Date.now();
+                }
+                const res = await fetch(postsUrl);
+                if (!res.ok) throw new Error('Failed to fetch posts');
                 posts.value = await res.json();
 
                 const urlParams = new URLSearchParams(window.location.search);
@@ -117,7 +179,7 @@ createApp({
                 }
             } catch (e) {
                 try {
-                    const retry = await fetch('posts.json');
+                    const retry = await fetch('/posts.json');
                     posts.value = await retry.json();
                 } catch (err) {}
             } finally {
@@ -135,16 +197,40 @@ createApp({
         const filteredPosts = computed(() => {
             const q = searchQuery.value.toLowerCase().trim();
             if (!q) return posts.value;
-            return posts.value.filter(p => searchType.value === 'title' ? p.title?.toLowerCase().includes(q) : p.author?.toLowerCase().includes(q));
+
+            return posts.value.filter(post => {
+                const title = (post.title || '').toLowerCase();
+                const author = (post.author || '').toLowerCase();
+                const message = (post.message || '').toLowerCase();
+                const folder = (post.folder || '').toLowerCase();
+                const tags = (post.tags || []).join(' ').toLowerCase();
+                const type = (post.type || '').toLowerCase();
+                const any = [title, author, message, folder, tags, type].join(' ');
+
+                if (searchType.value === 'title') return title.includes(q);
+                if (searchType.value === 'author') return author.includes(q) || any.includes(q);
+                if (searchType.value === 'tag') return tags.includes(q) || any.includes(q);
+                if (searchType.value === 'map') return folder.includes(q) || title.includes(q) || any.includes(q);
+                if (searchType.value === 'type') return type.includes(q) || any.includes(q);
+                return any.includes(q);
+            });
         });
 
-        const creatorCount = computed(() => [...new Set(posts.value.map(post => post.author))].length);
+        const creatorCount = computed(() => {
+            const creators = new Set(
+                posts.value
+                    .map(post => (post.author || '').toLowerCase().trim())
+                    .filter(name => name && name !== 'unknown')
+            );
+            return Math.max(creators.size, 1);
+        });
 
         return {
             posts, isLoading, searchQuery, searchType, filteredPosts, creatorCount, isModalOpen, isFormOpen, isSettingsOpen, activePost,
             activeJsonContent, activeFileName, activeFileSize, activeDescription, activeVideoMp4, openModal, closeModal, getEmbedUrl,
             copyMacroLink, showCopied, showFullCode, revealCode, displayedCode, isLongCode, currentVersion, toggleTheme,
-            theme, goToApplications, fontSize, compactMode, autoExpand, showDescriptions
+            theme, goToApplications, fontSize, compactMode, autoExpand, showDescriptions,
+            getPostVotes, castVote, getStarRating
         };
     }
 }).mount('#app');

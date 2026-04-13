@@ -1,7 +1,7 @@
 [
   {
     "title": "Circle Map",
-    "author": "Unknown",
+    "author": "Odsu",
     "message": "Starts next to gazebo and circles as long as trigger is held.",
     "fileUrl": "macros/Circle Map/macro.json",
     "folder": "macros/Circle Map",
@@ -11,7 +11,7 @@
   },
   {
     "title": "Gazebo Branch",
-    "author": "Unknown",
+    "author": "Odsu",
     "message": "Starts near Gazebo and loops around the map.",
     "fileUrl": "macros/Gazebo Branch/macro.json",
     "folder": "macros/Gazebo Branch",
@@ -21,7 +21,7 @@
   },
   {
     "title": "Long Walls and Branches",
-    "author": "Unknown",
+    "author": "Bloxx",
     "message": "Starts on top of Stump and branches with wall runs throughout the map.",
     "fileUrl": "macros/Long Walls and Branches/macro.json",
     "folder": "macros/Long Walls and Branches",
@@ -31,7 +31,7 @@
   },
   {
     "title": "Mqtking Double Walls",
-    "author": "Unknown",
+    "author": "mqtking",
     "message": "Starts on double walls and circles map.",
     "fileUrl": "macros/Mqtking Double Walls/macro.json",
     "folder": "macros/Mqtking Double Walls",
@@ -41,7 +41,7 @@
   },
   {
     "title": "Slide Juke",
-    "author": "Unknown",
+    "author": "jifty",
     "message": "Starts between double walls and performs a slide juke.",
     "fileUrl": "macros/Slide Juke/macro.json",
     "folder": "macros/Slide Juke",
@@ -51,7 +51,7 @@
   },
   {
     "title": "Stump Loop",
-    "author": "Unknown",
+    "author": "Odsu",
     "message": "Loops from Stump.",
     "fileUrl": "macros/Stump Loop/macro.json",
     "folder": "macros/Stump Loop",
