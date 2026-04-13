@@ -29,7 +29,14 @@ createApp({
         const SUPABASE_KEY = 'sb_publishable_yTqIWghbBdDMeFR9yNupDw_1jyLxkfm';
 
         const voteStore = ref({});
-        const userVoteStore = ref(JSON.parse(localStorage.getItem('macroVotes') || '{}'));
+        const voteLock = ref({});
+        let initialVotes = {};
+        try {
+            initialVotes = JSON.parse(localStorage.getItem('macroVotes') || '{}') || {};
+        } catch (error) {
+            initialVotes = {};
+        }
+        const userVoteStore = ref(initialVotes);
 
         const saveUserVotes = () => {
             localStorage.setItem('macroVotes', JSON.stringify(userVoteStore.value));
@@ -42,28 +49,28 @@ createApp({
 
         const castVote = async (post, direction) => {
             const key = post.fileUrl;
+            if (voteLock.value[key]) return;
+            voteLock.value = { ...voteLock.value, [key]: true };
+
             const current = voteStore.value[key] || { up: 0, down: 0 };
             const previous = userVoteStore.value[key] || null;
             const newVotes = { up: current.up, down: current.down };
-            let nextVote = direction;
 
             if (previous === direction) {
-                nextVote = null;
-            }
-
-            if (previous === 'up') newVotes.up = Math.max(0, newVotes.up - 1);
-            if (previous === 'down') newVotes.down = Math.max(0, newVotes.down - 1);
-            if (nextVote === 'up') newVotes.up += 1;
-            if (nextVote === 'down') newVotes.down += 1;
-
-            voteStore.value = { ...voteStore.value, [key]: newVotes };
-            if (nextVote) {
-                userVoteStore.value = { ...userVoteStore.value, [key]: nextVote };
-            } else {
+                if (direction === 'up') newVotes.up = Math.max(0, newVotes.up - 1);
+                if (direction === 'down') newVotes.down = Math.max(0, newVotes.down - 1);
                 const copy = { ...userVoteStore.value };
                 delete copy[key];
                 userVoteStore.value = copy;
+            } else {
+                if (previous === 'up') newVotes.up = Math.max(0, newVotes.up - 1);
+                if (previous === 'down') newVotes.down = Math.max(0, newVotes.down - 1);
+                if (direction === 'up') newVotes.up += 1;
+                if (direction === 'down') newVotes.down += 1;
+                userVoteStore.value = { ...userVoteStore.value, [key]: direction };
             }
+
+            voteStore.value = { ...voteStore.value, [key]: newVotes };
             saveUserVotes();
 
             try {
@@ -81,6 +88,10 @@ createApp({
                 });
             } catch (e) {
                 console.error('Vote save failed:', e);
+            } finally {
+                const lockCopy = { ...voteLock.value };
+                delete lockCopy[key];
+                voteLock.value = lockCopy;
             }
         };
 
@@ -93,9 +104,11 @@ createApp({
                     },
                 }).then(r => r.json());
                 if (Array.isArray(result)) {
+                    const nextStore = {};
                     result.forEach(v => {
-                        voteStore.value[v.macro_file_url] = { up: v.up_count || 0, down: v.down_count || 0 };
+                        nextStore[v.macro_file_url] = { up: v.up_count || 0, down: v.down_count || 0 };
                     });
+                    voteStore.value = nextStore;
                 }
             } catch (e) {
                 console.warn('Could not load votes from Supabase - votes unavailable', e);
