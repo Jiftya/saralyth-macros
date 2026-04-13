@@ -29,35 +29,56 @@ createApp({
         const SUPABASE_KEY = 'sb_publishable_yTqIWghbBdDMeFR9yNupDw_1jyLxkfm';
 
         const voteStore = ref({});
+        const userVoteStore = ref(JSON.parse(localStorage.getItem('macroVotes') || '{}'));
+
+        const saveUserVotes = () => {
+            localStorage.setItem('macroVotes', JSON.stringify(userVoteStore.value));
+        };
 
         const getPostVotes = (post) => {
-            return voteStore.value[post.fileUrl] || { up: 0, down: 0 };
+            const stored = voteStore.value[post.fileUrl] || { up: 0, down: 0 };
+            return { up: stored.up, down: stored.down, user: userVoteStore.value[post.fileUrl] || null };
         };
 
         const castVote = async (post, direction) => {
             const key = post.fileUrl;
             const current = voteStore.value[key] || { up: 0, down: 0 };
-            const newVotes = {
-                up: direction === 'up' ? current.up + 1 : current.up,
-                down: direction === 'down' ? current.down + 1 : current.down,
-            };
+            const previous = userVoteStore.value[key] || null;
+            const newVotes = { up: current.up, down: current.down };
+            let nextVote = direction;
+
+            if (previous === direction) {
+                nextVote = null;
+            }
+
+            if (previous === 'up') newVotes.up = Math.max(0, newVotes.up - 1);
+            if (previous === 'down') newVotes.down = Math.max(0, newVotes.down - 1);
+            if (nextVote === 'up') newVotes.up += 1;
+            if (nextVote === 'down') newVotes.down += 1;
+
             voteStore.value = { ...voteStore.value, [key]: newVotes };
+            if (nextVote) {
+                userVoteStore.value = { ...userVoteStore.value, [key]: nextVote };
+            } else {
+                const copy = { ...userVoteStore.value };
+                delete copy[key];
+                userVoteStore.value = copy;
+            }
+            saveUserVotes();
 
             try {
-                const url = `${SUPABASE_URL}/rest/v1/votes?macro_file_url=eq.${encodeURIComponent(key)}`;
+                const url = `${SUPABASE_URL}/rest/v1/votes`;
                 const body = { macro_file_url: key, up_count: newVotes.up, down_count: newVotes.down };
-                let res = await fetch(url, {
-                    method: 'PATCH',
-                    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates',
+                    },
                     body: JSON.stringify(body),
                 });
-                if (res.status === 404) {
-                    res = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
-                        method: 'POST',
-                        headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-                        body: JSON.stringify(body),
-                    });
-                }
             } catch (e) {
                 console.error('Vote save failed:', e);
             }
@@ -65,8 +86,11 @@ createApp({
 
         const loadVotesFromSupabase = async () => {
             try {
-                const result = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
-                    headers: { 'apikey': SUPABASE_KEY },
+                const result = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=macro_file_url,up_count,down_count`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    },
                 }).then(r => r.json());
                 if (Array.isArray(result)) {
                     result.forEach(v => {
@@ -74,7 +98,7 @@ createApp({
                     });
                 }
             } catch (e) {
-                console.warn('Could not load votes from Supabase - votes unavailable');
+                console.warn('Could not load votes from Supabase - votes unavailable', e);
             }
         };
 
